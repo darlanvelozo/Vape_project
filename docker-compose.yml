@@ -1,0 +1,31 @@
+# Serviços de apoio para desenvolvimento local.
+# Portas deslocadas (5433/6380) para não colidir com o Postgres 16 e o Redis
+# que já rodam nesta VPS para Arminda e BI AZUL.
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: vape-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-vape_dev}
+      POSTGRES_USER: ${POSTGRES_USER:-vape}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vape}
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - vape_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-vape}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: vape-redis
+    restart: unless-stopped
+    ports:
+      - "6380:6379"
+
+volumes:
+  vape_pgdata:

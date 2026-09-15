@@ -1,0 +1,35 @@
+# ============================================================
+# Vape Project — dependências do backend (Python 3.12)
+# ============================================================
+
+# --- Núcleo ---
+Django==5.1.5
+djangorestframework==3.15.2
+django-environ==0.11.2
+psycopg[binary]==3.2.3
+
+# --- Autenticação ---
+djangorestframework-simplejwt==5.3.1
+
+# --- API ---
+drf-spectacular==0.27.2
+django-filter==24.3
+django-cors-headers==4.6.0
+
+# --- Auditoria ---
+django-simple-history==3.7.0
+
+# --- Cache / filas ---
+redis==5.2.1
+django-redis==5.4.0
+
+# --- Produção ---
+gunicorn==23.0.0
+whitenoise==6.8.2
+
+# --- Desenvolvimento / testes ---
+pytest==8.3.4
+pytest-django==4.9.0
+pytest-cov==6.0.0
+model-bakery==1.20.0
+ruff==0.8.6

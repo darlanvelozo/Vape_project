@@ -1,0 +1,53 @@
+[Unit]
+Description=Vape Project — Backend (Django + Gunicorn)
+Documentation=https://github.com/darlanvelozo/Vape_project
+After=network.target postgresql.service redis-server.service
+Wants=postgresql.service
+
+[Service]
+Type=notify
+User=vape
+Group=vape
+WorkingDirectory=/opt/vape-project/backend
+EnvironmentFile=/opt/vape-project/deploy/env/producao.env
+
+# Gunicorn em 127.0.0.1:8002 — as portas 8000 e 8001 já são do BI AZUL e do
+# Arminda nesta VPS. O Nginx termina o TLS e faz proxy para cá.
+#
+# 2 workers × 3 threads numa VPS de 1 vCPU: o gargalo é espera de I/O do
+# Postgres, não CPU. Mais workers só disputariam memória com os outros
+# sistemas do servidor.
+ExecStart=/opt/vape-project/backend/.venv/bin/gunicorn \
+    config.wsgi:application \
+    --bind 127.0.0.1:8002 \
+    --workers 2 \
+    --threads 3 \
+    --timeout 60 \
+    --graceful-timeout 30 \
+    --max-requests 1000 \
+    --max-requests-jitter 100 \
+    --access-logfile - \
+    --error-logfile - \
+    --log-level info
+ExecReload=/bin/kill -s HUP $MAINPID
+
+Restart=on-failure
+RestartSec=5
+StartLimitInterval=60
+StartLimitBurst=5
+
+# Hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=read-only
+ReadWritePaths=/opt/vape-project/backend
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
+LimitNOFILE=4096
+
+[Install]
+WantedBy=multi-user.target

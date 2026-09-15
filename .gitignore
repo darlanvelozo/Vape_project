@@ -1,0 +1,46 @@
+# ============================================================
+# Vape Project — .gitignore
+# ============================================================
+
+# ---------- Segredos ----------
+.env
+.env.*
+!.env.example
+deploy/env/*.env
+
+# ---------- Python / Django ----------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+*.log
+db.sqlite3
+media/
+staticfiles/
+static_collected/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ---------- Node / Vite ----------
+node_modules/
+dist/
+frontend-dist/
+.vite/
+*.tsbuildinfo
+
+# ---------- Banco / backups ----------
+*.dump
+*.sql.gz
+backups/
+
+# ---------- Editores / SO ----------
+.vscode/
+.idea/
+.DS_Store
+*.swp
+
+# ---------- Produção ----------
+deploy/env/
+!deploy/env/*.example
