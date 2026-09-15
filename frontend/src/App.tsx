@@ -32,6 +32,7 @@ const Relatorios = lazy(() =>
 const Configuracoes = lazy(() =>
   import('./paginas/Configuracoes').then((m) => ({ default: m.Configuracoes })),
 )
+const Guia = lazy(() => import('./paginas/Guia').then((m) => ({ default: m.Guia })))
 
 export function App() {
   const { usuario, carregando, podeGerenciar } = useAutenticacao()
@@ -74,6 +75,7 @@ export function App() {
           />
           <Route path="relatorios" element={<Relatorios />} />
           <Route path="configuracoes" element={<Configuracoes />} />
+        <Route path="guia" element={<Guia />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

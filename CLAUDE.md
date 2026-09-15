@@ -16,7 +16,7 @@
 fornecedores, financeiro e relatórios). Várias lojas, de donos diferentes,
 na mesma instalação.
 
-- **Versão atual:** **1.3.0, em produção** desde 15/09/2026, com a loja
+- **Versão atual:** **1.4.0, em produção** desde 15/09/2026, com a loja
   `luxury_vapes` operando com dados reais
 - **Endereço:** https://vape.2-24-122-160.sslip.io (sslip.io — ainda sem
   domínio próprio)
@@ -26,6 +26,8 @@ na mesma instalação.
   **nunca commitar secrets**; `.env` e `deploy/env/` estão no `.gitignore`)
 - **Operação:** [docs/OPERACAO.md](docs/OPERACAO.md) — deploy, backup,
   restauração, logs e migração para domínio próprio.
+- **Guia do lojista:** a página `/guia` documenta o produto para quem opera.
+  Funcionalidade nova que mude o dia a dia entra lá também.
 
 ## 2. Antes de qualquer implementação
 

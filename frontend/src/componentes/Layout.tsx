@@ -2,8 +2,8 @@
 
 import clsx from 'clsx'
 import {
-  BarChart3, Boxes, ChevronDown, LayoutDashboard, LogOut, Menu, Package,
-  Receipt, Settings, ShoppingCart, Truck, Users, Wallet, X,
+  BarChart3, BookOpen, Boxes, ChevronDown, LayoutDashboard, LogOut, Menu,
+  Package, Receipt, Settings, ShoppingCart, Truck, Users, Wallet, X,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
@@ -42,6 +42,7 @@ const MENU: { grupo: string; itens: ItemMenu[] }[] = [
       { para: '/financeiro', rotulo: 'Financeiro', icone: Wallet, somenteGestao: true },
       { para: '/relatorios', rotulo: 'Relatórios', icone: BarChart3 },
       { para: '/configuracoes', rotulo: 'Configurações', icone: Settings },
+      { para: '/guia', rotulo: 'Guia de uso', icone: BookOpen },
     ],
   },
 ]

@@ -195,3 +195,55 @@ class TestConferencia:
         operacao["vendas"][0]["itens"][0]["quantidade"] = 99
         with pytest.raises(CommandError, match="recusada"):
             call_command("importar_operacao", escrever(tmp_path, operacao))
+
+
+class TestEquipe:
+    """Os acessos da equipe vivem no arquivo: um --recriar não pode apagá-los."""
+
+    def test_cria_socio_como_dono(self, tmp_path, operacao):
+        from apps.usuarios.models import Usuario
+
+        operacao["equipe"] = [{
+            "nome": "Sócio", "email": "socio@importada.com",
+            "senha": "SenhaForte123", "papel": "dono",
+        }]
+        call_command("importar_operacao", escrever(tmp_path, operacao))
+
+        socio = Usuario.objects.get(email="socio@importada.com")
+        assert socio.papel == "dono"
+        assert socio.loja.nome == "Loja Importada"
+        assert socio.check_password("SenhaForte123")
+
+    def test_papel_padrao_e_vendedor(self, tmp_path, operacao):
+        from apps.usuarios.models import Usuario
+
+        operacao["equipe"] = [{
+            "nome": "Balconista", "email": "balcao@importada.com", "senha": "SenhaForte123",
+        }]
+        call_command("importar_operacao", escrever(tmp_path, operacao))
+        assert Usuario.objects.get(email="balcao@importada.com").papel == "vendedor"
+
+    def test_dois_donos_convivem_na_mesma_loja(self, tmp_path, operacao):
+        from apps.usuarios.models import Usuario
+
+        operacao["equipe"] = [{
+            "nome": "Sócio", "email": "socio@importada.com",
+            "senha": "SenhaForte123", "papel": "dono",
+        }]
+        call_command("importar_operacao", escrever(tmp_path, operacao))
+
+        donos = Usuario.objects.filter(papel="dono", loja__nome="Loja Importada")
+        assert donos.count() == 2
+
+    def test_recriar_preserva_a_equipe(self, tmp_path, operacao):
+        from apps.usuarios.models import Usuario
+
+        operacao["equipe"] = [{
+            "nome": "Sócio", "email": "socio@importada.com",
+            "senha": "SenhaForte123", "papel": "dono",
+        }]
+        arquivo = escrever(tmp_path, operacao)
+        call_command("importar_operacao", arquivo)
+        call_command("importar_operacao", arquivo, "--recriar")
+
+        assert Usuario.objects.filter(email="socio@importada.com").count() == 1

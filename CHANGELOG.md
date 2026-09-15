@@ -3,6 +3,17 @@
 Todas as mudanças relevantes deste projeto são registradas aqui.
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
+## [1.4.0] — 2026-09-15
+
+### Adicionado
+- **Guia de uso** (`/guia`), no menu do sistema: 14 seções explicando cada
+  tela, como operar e por que cada regra existe — escrito para o lojista e a
+  equipe do balcão, não para quem desenvolve. Inclui as dúvidas que aparecem
+  no primeiro mês ("não consigo vender", "o caixa não bate", "lucro positivo
+  com caixa negativo").
+- O importador aceita uma seção `equipe`, para que os acessos dos sócios e
+  vendedores vivam no arquivo e sobrevivam a um `--recriar`.
+
 ## [1.3.0] — 2026-09-15
 
 ### Adicionado

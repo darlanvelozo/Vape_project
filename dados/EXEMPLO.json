@@ -19,6 +19,16 @@
     "prazo_fiado_dias": 30
   },
 
+  "equipe": [
+    {
+      "nome": "Sócio ou vendedor",
+      "email": "socio@exemplo.com",
+      "senha": "TrocarNoPrimeiroAcesso1",
+      "papel": "dono",
+      "_nota": "papéis: dono, gerente, vendedor. Ausente, assume vendedor."
+    }
+  ],
+
   "fornecedores": ["Fornecedor principal"],
 
   "clientes": [

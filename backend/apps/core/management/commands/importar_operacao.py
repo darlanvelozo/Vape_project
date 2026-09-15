@@ -196,6 +196,18 @@ class Command(BaseCommand):
             papel=Papel.DONO,
         )
 
+        # Equipe adicional. Fica no arquivo para que um `--recriar` não apague
+        # os acessos dos sócios e vendedores junto com o histórico.
+        for membro in dados.get("equipe", []):
+            Usuario.objects.create_user(
+                email=membro["email"],
+                password=membro["senha"],
+                nome=membro["nome"],
+                telefone=membro.get("telefone", ""),
+                loja=loja,
+                papel=membro.get("papel", Papel.VENDEDOR),
+            )
+
         variacoes = self._criar_catalogo(loja, dados["produtos"])
         fornecedores = {
             self._nome_do_fornecedor(entrada): Fornecedor.objects.create(
@@ -479,13 +491,17 @@ class Command(BaseCommand):
             Decimal("0.00"),
         )
 
+        acessos = ", ".join(
+            f"{u.email} ({u.get_papel_display().lower()})"
+            for u in Usuario.objects.filter(loja=loja).order_by("papel", "nome")
+        )
         total_produtos = Produto.objects.filter(loja=loja).count()
         total_variacoes = Variacao.objects.filter(loja=loja).count()
 
         self.stdout.write(self.style.SUCCESS(f"""
 Operação importada: {loja.nome}
 
-  Acesso .................: {dados['usuario']['email']}
+  Acessos ................: {acessos}
   Produtos / variações ...: {total_produtos} / {total_variacoes}
   Compras registradas ....: {Compra.objects.filter(loja=loja).count()} — R$ {compras}
   Vendas registradas .....: {vendas.count()} — R$ {faturamento}

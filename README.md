@@ -55,6 +55,8 @@ dados.
 - **Vitrine pública** — página sem senha com o que há disponível, para enviar
   aos clientes. Desligada por padrão; ativa em Configurações → Vitrine
   pública. Não mostra custo, margem nem quantidade exata.
+- **Guia de uso** — `/guia`, dentro do sistema: como operar cada tela e por que
+  cada regra existe, para treinar a equipe sem depender de ninguém.
 
 ## Desenvolvimento local
 
