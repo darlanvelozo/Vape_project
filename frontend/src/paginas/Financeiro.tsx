@@ -157,9 +157,17 @@ export function Financeiro() {
         ) : (
           <div className="h-56 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={grafico} margin={{ top: 5, right: 5, left: 4, bottom: 0 }}>
+              <BarChart data={grafico} margin={{ top: 5, right: 14, left: 4, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                <XAxis dataKey="data" tick={{ fontSize: 12, fill: '#64748b' }} tickLine={false} />
+                <XAxis
+                    dataKey="data"
+                    tick={{ fontSize: 12, fill: '#64748b' }}
+                    tickLine={false}
+                    // Sem folga, o rótulo do último ponto é cortado pela
+                    // borda em telas estreitas.
+                    padding={{ left: 4, right: 4 }}
+                    minTickGap={18}
+                  />
                 <YAxis
                     tick={{ fontSize: 12, fill: '#64748b' }}
                     tickLine={false}

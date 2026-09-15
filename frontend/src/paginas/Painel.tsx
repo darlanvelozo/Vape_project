@@ -189,7 +189,7 @@ export function Painel() {
           ) : (
             <div className="h-64 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={grafico} margin={{ top: 5, right: 5, left: 4, bottom: 0 }}>
+                <AreaChart data={grafico} margin={{ top: 5, right: 14, left: 4, bottom: 0 }}>
                   <defs>
                     <linearGradient id="corFaturamento" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#3d55b4" stopOpacity={0.35} />
@@ -201,7 +201,15 @@ export function Painel() {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                  <XAxis dataKey="data" tick={{ fontSize: 12, fill: '#64748b' }} tickLine={false} />
+                  <XAxis
+                    dataKey="data"
+                    tick={{ fontSize: 12, fill: '#64748b' }}
+                    tickLine={false}
+                    // Sem folga, o rótulo do último ponto é cortado pela
+                    // borda em telas estreitas.
+                    padding={{ left: 4, right: 4 }}
+                    minTickGap={18}
+                  />
                   <YAxis
                     tick={{ fontSize: 12, fill: '#64748b' }}
                     tickLine={false}
