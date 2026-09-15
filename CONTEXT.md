@@ -3,7 +3,7 @@
 > **Documento mestre.** Toda implementação deve começar pela leitura deste
 > arquivo. Para Claude Code, ler também [CLAUDE.md](CLAUDE.md).
 >
-> Última atualização: **2026-09-15** · Versão atual: **1.2.0** ·
+> Última atualização: **2026-09-15** · Versão atual: **1.3.0** ·
 > **Em produção, com operação real.**
 
 ---
@@ -21,12 +21,12 @@ Cada loja se cadastra sozinha e enxerga apenas os próprios dados.
 
 | Item | Situação |
 |---|---|
-| Versão | 1.2.0, em produção desde 15/09/2026 |
+| Versão | 1.3.0, em produção desde 15/09/2026 |
 | Endereço | https://vape.2-24-122-160.sslip.io |
 | Backend | Django 5.1 + DRF, gunicorn em `127.0.0.1:8002` via systemd |
 | Frontend | React 18 + Vite, compilado em `frontend/dist`, servido pelo Nginx |
 | Banco | PostgreSQL 16 local, base `vape_prod` |
-| Testes | 160 testes (pytest) + 12 (vitest), CI no GitHub Actions |
+| Testes | 177 testes (pytest) + 13 (vitest), CI no GitHub Actions |
 | Backup | Diário às 03h15, retenção de 14 dias, restauração testada |
 | Lojas | `luxury_vapes` (operação real, desde 15/09/2026) e uma loja de demonstração |
 
@@ -40,7 +40,7 @@ Cada loja se cadastra sozinha e enxerga apenas os próprios dados.
 | **Caixa** | Abertura com fundo de troco, sangria, suprimento, conferência por forma de pagamento, fechamento com apuração de diferença |
 | **Clientes** | Cadastro, histórico, limite de crédito (fiado), verificação de idade mínima |
 | **Fornecedores** | Cadastro e compras: rascunho → recebimento (entrada no estoque + conta a pagar) → cancelamento com estorno |
-| **Financeiro** | Contas a pagar/receber, baixa e estorno, fluxo de caixa realizado por dia |
+| **Financeiro** | Visão de gestão (resultado, caixa e pendências separados), contas a pagar/receber, baixa e estorno, fluxo diário |
 | **Relatórios** | Mais vendidos, margem, curva ABC, giro de estoque, formas de pagamento, desempenho da equipe |
 | **Usuários** | Papéis dono, gerente e vendedor, com permissões distintas |
 | **Vitrine** | Página pública sem senha com os itens disponíveis; sem custo, margem ou quantidade exata |

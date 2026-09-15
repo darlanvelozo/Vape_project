@@ -269,6 +269,16 @@ class TestViewsQueNaoSaoViewSet:
         # A outra loja não tem venda, mas tem produto: o estoque não pode vazar.
         assert resposta.json()["estoque"]["unidades"] == 0
 
+    def test_resultado_nao_soma_numeros_de_outra_loja(self, api_dono, dados_da_outra_loja):
+        """O financeiro é o dado mais sensível: nada da loja B pode entrar."""
+        corpo = api_dono.get("/api/relatorios/resultado/").json()
+
+        assert corpo["resultado"]["faturamento_centavos"] == 0
+        assert corpo["caixa"]["saidas_centavos"] == 0
+        assert corpo["estoque"]["unidades"] == 0
+        # A loja B tem uma despesa de R$ 1.000 pendente.
+        assert corpo["a_pagar"]["total_centavos"] == 0
+
     def test_vendedor_nao_altera_dados_da_loja(self, api_vendedor):
         resposta = api_vendedor.patch("/api/loja/", {"nome": "Invadida"}, format="json")
         assert resposta.status_code == 400

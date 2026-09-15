@@ -54,13 +54,23 @@ def receber_compra(*, compra: Compra, usuario=None) -> Compra:
     compra.usuario = usuario or compra.usuario
     compra.save(update_fields=["total", "status", "recebida_em", "usuario", "atualizado_em"])
 
-    if compra.vencimento:
-        _criar_conta_a_pagar(compra)
+    _lancar_no_financeiro(compra)
 
     return compra
 
 
-def _criar_conta_a_pagar(compra: Compra):
+def _lancar_no_financeiro(compra: Compra):
+    """
+    Toda compra recebida vira despesa — com ou sem prazo.
+
+    Antes, só compra com vencimento gerava lançamento, e a compra à vista
+    sumia do financeiro: o relatório mostrava a receita das vendas sem o
+    dinheiro que saiu para comprar a mercadoria, sugerindo um lucro que não
+    existe. O prazo muda apenas o status:
+
+    - **com vencimento** → conta a pagar pendente;
+    - **sem vencimento** → pagamento à vista, já baixado na data da compra.
+    """
     from apps.financeiro.models import (
         CategoriaFinanceira,
         Lancamento,
@@ -68,19 +78,25 @@ def _criar_conta_a_pagar(compra: Compra):
         TipoLancamento,
     )
 
+    if compra.total <= 0:
+        return None
+
     categoria, _ = CategoriaFinanceira.objects.get_or_create(
         loja=compra.loja,
         nome="Compra de mercadoria",
         defaults={"tipo": TipoLancamento.DESPESA},
     )
-    Lancamento.objects.create(
+
+    a_prazo = bool(compra.vencimento)
+    return Lancamento.objects.create(
         loja=compra.loja,
         tipo=TipoLancamento.DESPESA,
         categoria=categoria,
         descricao=f"Compra #{compra.pk} — {compra.fornecedor.nome}",
         valor=compra.total,
-        vencimento=compra.vencimento,
-        status=StatusLancamento.PENDENTE,
+        vencimento=compra.vencimento or compra.data,
+        pago_em=None if a_prazo else compra.data,
+        status=StatusLancamento.PENDENTE if a_prazo else StatusLancamento.PAGO,
         fornecedor=compra.fornecedor,
         compra=compra,
     )
@@ -117,9 +133,11 @@ def cancelar_compra(*, compra: Compra, usuario=None, motivo: str = "") -> Compra
 
         from apps.financeiro.models import Lancamento, StatusLancamento
 
-        Lancamento.objects.filter(compra=compra, status=StatusLancamento.PENDENTE).update(
+        # Inclui a despesa já baixada (compra à vista), senão o cancelamento
+        # devolveria a mercadoria mas deixaria a saída no financeiro.
+        Lancamento.objects.filter(compra=compra).exclude(
             status=StatusLancamento.CANCELADO
-        )
+        ).update(status=StatusLancamento.CANCELADO, pago_em=None)
 
     compra.status = StatusCompra.CANCELADA
     compra.observacoes = f"{compra.observacoes}\n[Cancelada] {motivo}".strip()

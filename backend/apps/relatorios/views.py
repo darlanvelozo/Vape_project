@@ -429,3 +429,148 @@ class VendasPorVendedorView(BaseRelatorioView):
                 for linha in linhas
             ],
         })
+
+
+class ResultadoView(BaseRelatorioView):
+    """
+    GET /api/relatorios/resultado/ — a visão de gestão do período.
+
+    Responde três perguntas que o lojista mistura o tempo todo:
+
+    1. **Quanto eu ganhei?** Receita das vendas menos o custo da mercadoria
+       que saiu (o CMV), menos as despesas do negócio. É o resultado — e não
+       tem relação direta com o dinheiro em caixa.
+    2. **Quanto entrou e saiu?** O caixa do período, onde a compra pesa
+       integralmente no mês em que foi feita, mesmo que a mercadoria ainda
+       esteja na prateleira.
+    3. **Quanto ainda vou receber e pagar?** As pendências.
+
+    A diferença entre 1 e 2 é o ponto cego mais caro de uma loja pequena:
+    comprar estoque derruba o caixa sem ser prejuízo, porque o dinheiro
+    virou mercadoria. Por isso o valor do estoque aparece separado.
+    """
+
+    permission_classes = [EhDonoOuGerente]
+
+    @extend_schema(responses=dict)
+    def get(self, request):
+        inicio, fim = self.periodo(request)
+        loja = request.loja
+        hoje = timezone.localdate()
+
+        vendas = self.vendas_finalizadas(request, inicio, fim)
+        agregado = vendas.aggregate(
+            faturamento=Sum("total"),
+            desconto=Sum("desconto"),
+            custo=Sum("custo_total"),
+            quantidade=Count("id"),
+        )
+        faturamento = agregado["faturamento"] or Decimal("0.00")
+        custo_mercadoria = agregado["custo"] or Decimal("0.00")
+        lucro_bruto = faturamento - custo_mercadoria
+
+        lancamentos = Lancamento.objects.filter(loja=loja)
+
+        def somar(consulta):
+            return consulta.aggregate(total=Sum("valor"))["total"] or Decimal("0.00")
+
+        # Despesa operacional é o custo de manter a loja: aluguel, energia,
+        # salário. A compra de mercadoria fica de fora porque já entra no
+        # resultado como CMV — contá-la aqui seria cobrar o mesmo custo duas
+        # vezes, e no mês errado.
+        despesas_operacionais = somar(
+            lancamentos.filter(
+                tipo=TipoLancamento.DESPESA,
+                status=StatusLancamento.PAGO,
+                pago_em__range=(inicio, fim),
+                compra__isnull=True,
+            )
+        )
+        resultado = lucro_bruto - despesas_operacionais
+
+        # --- caixa do período (regime de caixa) ---
+        entradas = somar(
+            lancamentos.filter(
+                tipo=TipoLancamento.RECEITA,
+                status=StatusLancamento.PAGO,
+                pago_em__range=(inicio, fim),
+            )
+        )
+        saidas = somar(
+            lancamentos.filter(
+                tipo=TipoLancamento.DESPESA,
+                status=StatusLancamento.PAGO,
+                pago_em__range=(inicio, fim),
+            )
+        )
+        compras_no_periodo = somar(
+            lancamentos.filter(
+                tipo=TipoLancamento.DESPESA,
+                status=StatusLancamento.PAGO,
+                pago_em__range=(inicio, fim),
+                compra__isnull=False,
+            )
+        )
+
+        # --- pendências (não dependem do período) ---
+        pendentes = lancamentos.filter(status=StatusLancamento.PENDENTE)
+        a_receber = pendentes.filter(tipo=TipoLancamento.RECEITA)
+        a_pagar = pendentes.filter(tipo=TipoLancamento.DESPESA)
+
+        # --- estoque parado (dinheiro que virou mercadoria) ---
+        variacoes = Variacao.objects.filter(loja=loja, ativo=True, saldo__gt=0)
+        estoque = variacoes.aggregate(
+            custo=Sum(ExpressionWrapper(F("saldo") * F("preco_custo"), output_field=DECIMAL)),
+            venda=Sum(ExpressionWrapper(F("saldo") * F("preco_venda"), output_field=DECIMAL)),
+            unidades=Sum("saldo"),
+        )
+        estoque_custo = estoque["custo"] or Decimal("0.00")
+        estoque_venda = estoque["venda"] or Decimal("0.00")
+
+        margem_bruta = (lucro_bruto / faturamento * 100) if faturamento else Decimal("0")
+
+        return Response({
+            "inicio": inicio,
+            "fim": fim,
+
+            "resultado": {
+                "faturamento_centavos": para_centavos(faturamento),
+                "descontos_centavos": para_centavos(agregado["desconto"] or 0),
+                "vendas": agregado["quantidade"] or 0,
+                "custo_mercadoria_centavos": para_centavos(custo_mercadoria),
+                "lucro_bruto_centavos": para_centavos(lucro_bruto),
+                "margem_bruta": float(round(margem_bruta, 2)),
+                "despesas_operacionais_centavos": para_centavos(despesas_operacionais),
+                "resultado_centavos": para_centavos(resultado),
+                "ticket_medio_centavos": (
+                    para_centavos(faturamento / agregado["quantidade"])
+                    if agregado["quantidade"] else 0
+                ),
+            },
+
+            "caixa": {
+                "entradas_centavos": para_centavos(entradas),
+                "saidas_centavos": para_centavos(saidas),
+                "compras_centavos": para_centavos(compras_no_periodo),
+                "saldo_centavos": para_centavos(entradas - saidas),
+            },
+
+            "a_receber": {
+                "total_centavos": para_centavos(somar(a_receber)),
+                "atrasado_centavos": para_centavos(somar(a_receber.filter(vencimento__lt=hoje))),
+                "quantidade": a_receber.count(),
+            },
+
+            "a_pagar": {
+                "total_centavos": para_centavos(somar(a_pagar)),
+                "atrasado_centavos": para_centavos(somar(a_pagar.filter(vencimento__lt=hoje))),
+                "quantidade": a_pagar.count(),
+            },
+
+            "estoque": {
+                "unidades": estoque["unidades"] or 0,
+                "custo_centavos": para_centavos(estoque_custo),
+                "venda_centavos": para_centavos(estoque_venda),
+                "lucro_previsto_centavos": para_centavos(estoque_venda - estoque_custo),
+            },
+        })

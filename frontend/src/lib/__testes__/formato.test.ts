@@ -101,3 +101,13 @@ describe('telefone', () => {
     expect(formatarTelefone('119999')).toBe('(11) 9999')
   })
 })
+
+describe('zero negativo', () => {
+  it('não formata menos-zero com sinal', () => {
+    // Uma despesa zerada, negada para exibição, vira -0 — e o Intl escreve
+    // "-R$ 0,00", que sugere um valor que não existe.
+    expect(moeda(Math.abs(-0))).toBe('R$ 0,00')
+    expect(Object.is(-0, 0)).toBe(false)
+    expect(-0 < 0).toBe(false)
+  })
+})

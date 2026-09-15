@@ -3,6 +3,36 @@
 Todas as mudanças relevantes deste projeto são registradas aqui.
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
+## [1.3.0] — 2026-09-15
+
+### Adicionado
+- **Visão de gestão no financeiro** (`/api/relatorios/resultado/`), separando
+  três contas que costumam ser confundidas:
+  - **Resultado** — faturamento menos o custo da mercadoria vendida e as
+    despesas da loja. É o que o negócio ganhou.
+  - **Caixa** — o dinheiro que entrou e saiu no período, onde a compra pesa
+    integralmente no mês em que foi feita.
+  - **Pendências** — a receber e a pagar, com o vencido destacado.
+  A tela explica a diferença entre lucro e caixa apontando quanto virou
+  estoque, que é a dúvida mais cara de uma loja pequena.
+- Estoque exibido como patrimônio: quanto custou, quanto vale a preço de
+  venda e quanto ainda há de lucro para realizar.
+
+### Corrigido
+- **Compra à vista não entrava no financeiro.** Só compra com vencimento
+  gerava lançamento, então o dinheiro gasto com mercadoria sumia do
+  relatório: a loja aparecia com R$ 1.160 de receita e nenhuma despesa, como
+  se tudo fosse lucro. Agora toda compra recebida vira despesa — pendente se
+  a prazo, já baixada se à vista.
+- Cancelar compra à vista devolvia o estoque mas deixava a saída no
+  financeiro.
+- **Venda gravava custo desatualizado** quando quem chamava o serviço tinha
+  em mãos uma instância carregada antes da última compra. Como o custo fica
+  congelado no item, a margem daquela venda ficaria errada para sempre —
+  `criar_venda` passa a ler o custo do banco.
+- Despesa zerada aparecia como "−R$ 0,00": em JavaScript `-0 < 0` é falso,
+  mas o formatador escreve o sinal.
+
 ## [1.2.0] — 2026-09-15
 
 ### Adicionado

@@ -18,6 +18,7 @@ from apps.core.exceptions import CaixaFechado, ErroDeNegocio
 from apps.core.utils import calcular_idade, quantizar
 from apps.estoque.models import TipoMovimento
 from apps.estoque.servicos import registrar_movimento
+from apps.produtos.models import Variacao
 
 from .models import (
     Caixa,
@@ -190,9 +191,19 @@ def criar_venda(*, loja, usuario, itens, cliente=None, desconto=Decimal("0.00"),
         observacoes=observacoes,
     )
 
+    # As variações são recarregadas do banco em vez de confiar no objeto
+    # recebido: o custo médio muda a cada compra, e uma instância carregada
+    # antes disso gravaria no item um custo velho — que fica congelado no
+    # snapshot e distorce a margem para sempre.
+    ids = [entrada["variacao"].pk for entrada in itens]
+    atuais = {
+        variacao.pk: variacao
+        for variacao in Variacao.objects.select_related("produto").filter(pk__in=ids)
+    }
+
     for entrada in itens:
-        variacao = entrada["variacao"]
-        if variacao.loja_id != loja.id:
+        variacao = atuais.get(entrada["variacao"].pk)
+        if variacao is None or variacao.loja_id != loja.id:
             raise ErroDeNegocio("Há itens que não pertencem a esta loja.", campo="itens")
 
         preco = entrada.get("preco_unitario")

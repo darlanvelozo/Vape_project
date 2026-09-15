@@ -16,7 +16,7 @@
 fornecedores, financeiro e relatórios). Várias lojas, de donos diferentes,
 na mesma instalação.
 
-- **Versão atual:** **1.2.0, em produção** desde 15/09/2026, com a loja
+- **Versão atual:** **1.3.0, em produção** desde 15/09/2026, com a loja
   `luxury_vapes` operando com dados reais
 - **Endereço:** https://vape.2-24-122-160.sslip.io (sslip.io — ainda sem
   domínio próprio)
@@ -57,6 +57,10 @@ backup e roda a suíte antes de reiniciar).
   toque mínimo de 44px, campo com fonte de 16px (menos que isso faz o iOS dar
   zoom ao focar) e nenhuma página rolando na horizontal.
 - **Dinheiro:** `Decimal` no backend, centavos inteiros na API, nunca float.
+- **Resultado ≠ caixa.** Na apuração de lucro entra o custo da mercadoria
+  *vendida* (CMV); a compra inteira entra só no fluxo de caixa. Contar a
+  compra como despesa no resultado cobra o mesmo custo duas vezes, e no mês
+  errado.
 
 ## 4. O que NÃO fazer
 

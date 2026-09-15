@@ -31,6 +31,7 @@ from apps.relatorios.views import (
     GiroDeEstoqueView,
     MaisVendidosView,
     MargemPorProdutoView,
+    ResultadoView,
     VendasPorFormaPagamentoView,
     VendasPorPeriodoView,
     VendasPorVendedorView,
@@ -75,6 +76,7 @@ urlpatterns_autenticacao = [
 
 urlpatterns_relatorios = [
     path("dashboard/", DashboardView.as_view(), name="dashboard"),
+    path("resultado/", ResultadoView.as_view(), name="resultado"),
     path("vendas-por-periodo/", VendasPorPeriodoView.as_view(), name="vendas-por-periodo"),
     path("mais-vendidos/", MaisVendidosView.as_view(), name="mais-vendidos"),
     path("curva-abc/", CurvaABCView.as_view(), name="curva-abc"),

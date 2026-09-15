@@ -354,3 +354,26 @@ class TestPrazoDoFiado:
         lancamento = Lancamento.objects.get(venda=venda)
         assert lancamento.vencimento == timezone.localdate()
         assert lancamento.pago_em == timezone.localdate()
+
+
+class TestCustoNoMomentoDaVenda:
+    """
+    O custo do item é congelado na venda. Se vier de uma instância carregada
+    antes da última compra, a margem daquela venda fica errada para sempre —
+    e não há como perceber olhando a tela.
+    """
+
+    def test_venda_usa_o_custo_atual_mesmo_com_instancia_velha(self, loja, dono,
+                                                               variacao, caixa):
+        from apps.produtos.models import Variacao
+
+        instancia_velha = Variacao.objects.get(pk=variacao.pk)  # custo 30,00
+
+        # O custo sobe no banco, como aconteceria ao receber uma compra.
+        Variacao.objects.filter(pk=variacao.pk).update(preco_custo=Decimal("70.00"))
+
+        venda = criar_venda(
+            loja=loja, usuario=dono,
+            itens=[{"variacao": instancia_velha, "quantidade": 1}],
+        )
+        assert venda.itens.first().custo_unitario == Decimal("70.00")

@@ -46,8 +46,9 @@ dados.
   verificação de idade mínima.
 - **Fornecedores e compras** — pedido em rascunho, recebimento que dá entrada
   no estoque e gera a conta a pagar, cancelamento com estorno.
-- **Financeiro** — contas a pagar e a receber, baixa e estorno, fluxo de caixa
-  realizado por dia.
+- **Financeiro** — visão de gestão separando resultado (o que a loja ganhou),
+  caixa (o que entrou e saiu) e pendências; contas a pagar e a receber, baixa
+  e estorno, fluxo diário.
 - **Relatórios** — mais vendidos, margem por produto, curva ABC, giro de
   estoque, formas de pagamento e desempenho da equipe.
 - **Equipe** — papéis de dono, gerente e vendedor, com permissões distintas.

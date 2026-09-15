@@ -1,7 +1,7 @@
 /** Contas a pagar e a receber, com fluxo de caixa realizado. */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Check, Plus, RotateCcw, Trash2 } from 'lucide-react'
+import { AlertTriangle, Check, Plus, RotateCcw, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
@@ -11,8 +11,40 @@ import {
   Modal, Paginacao, Selecao, Selo, TabelaEnvolvida, Vazio,
 } from '../componentes/ui'
 import { ErroApi, api, querystring } from '../lib/api'
-import { dataISO, formatarData, formatarMoeda, paraCentavos } from '../lib/formato'
+import {
+  dataISO, diasAtras, formatarData, formatarMoeda, formatarPercentual, paraCentavos,
+} from '../lib/formato'
 import type { CategoriaFinanceira, Lancamento, Pagina } from '../lib/tipos'
+
+interface Resultado {
+  inicio: string
+  fim: string
+  resultado: {
+    faturamento_centavos: number
+    descontos_centavos: number
+    vendas: number
+    custo_mercadoria_centavos: number
+    lucro_bruto_centavos: number
+    margem_bruta: number
+    despesas_operacionais_centavos: number
+    resultado_centavos: number
+    ticket_medio_centavos: number
+  }
+  caixa: {
+    entradas_centavos: number
+    saidas_centavos: number
+    compras_centavos: number
+    saldo_centavos: number
+  }
+  a_receber: { total_centavos: number; atrasado_centavos: number; quantidade: number }
+  a_pagar: { total_centavos: number; atrasado_centavos: number; quantidade: number }
+  estoque: {
+    unidades: number
+    custo_centavos: number
+    venda_centavos: number
+    lucro_previsto_centavos: number
+  }
+}
 
 interface ResumoFinanceiro {
   a_receber_centavos: number
@@ -39,15 +71,24 @@ export function Financeiro() {
   const [atrasados, setAtrasados] = useState(parametros.get('filtro') === 'atrasados')
   const [modal, setModal] = useState<Lancamento | 'novo' | null>(null)
   const [pagina, setPagina] = useState(1)
+  const [aba, setAba] = useState<'visao' | 'lancamentos'>('visao')
+  const [inicio, setInicio] = useState(diasAtras(30))
+  const [fim, setFim] = useState('')
 
   const { data: resumo } = useQuery({
     queryKey: ['financeiro-resumo'],
     queryFn: () => api.get<ResumoFinanceiro>('/financeiro/lancamentos/resumo/'),
   })
 
+  const { data: gestao } = useQuery({
+    queryKey: ['resultado', inicio, fim],
+    queryFn: () => api.get<Resultado>(`/relatorios/resultado/${querystring({ inicio, fim })}`),
+  })
+
   const { data: fluxo } = useQuery({
-    queryKey: ['fluxo-caixa'],
-    queryFn: () => api.get<FluxoCaixa>('/financeiro/lancamentos/fluxo-de-caixa/'),
+    queryKey: ['fluxo-caixa', inicio, fim],
+    queryFn: () =>
+      api.get<FluxoCaixa>(`/financeiro/lancamentos/fluxo-de-caixa/${querystring({ inicio, fim })}`),
   })
 
   const { data: lancamentos, isLoading } = useQuery({
@@ -73,6 +114,7 @@ export function Financeiro() {
     clienteQuery.invalidateQueries({ queryKey: ['lancamentos'] })
     clienteQuery.invalidateQueries({ queryKey: ['financeiro-resumo'] })
     clienteQuery.invalidateQueries({ queryKey: ['fluxo-caixa'] })
+    clienteQuery.invalidateQueries({ queryKey: ['resultado'] })
     clienteQuery.invalidateQueries({ queryKey: ['dashboard'] })
   }
 
@@ -91,17 +133,11 @@ export function Financeiro() {
     onSuccess: invalidar,
   })
 
-  const grafico = (fluxo?.dias ?? []).map((dia) => ({
-    data: formatarData(dia.data).slice(0, 5),
-    entradas: dia.entradas_centavos / 100,
-    saidas: dia.saidas_centavos / 100,
-  }))
-
   return (
     <>
       <CabecalhoPagina
         titulo="Financeiro"
-        descricao="Contas a pagar, a receber e o que já foi realizado."
+        descricao="Quanto a loja ganhou, quanto entrou no caixa e o que ainda falta receber."
         acoes={
           <Botao icone={<Plus size={16} />} onClick={() => setModal('novo')}>
             Novo lançamento
@@ -109,93 +145,45 @@ export function Financeiro() {
         }
       />
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="cartao p-4">
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">A receber</p>
-          <p className="numerico mt-1 text-2xl font-bold text-emerald-700">
-            {formatarMoeda(resumo?.a_receber_centavos ?? 0)}
-          </p>
-          {(resumo?.a_receber_atrasado_centavos ?? 0) > 0 && (
-            <p className="text-xs text-rose-600">
-              {formatarMoeda(resumo!.a_receber_atrasado_centavos)} em atraso
-            </p>
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <div className="flex gap-1 rounded-lg bg-slate-200/60 p-1">
+          {([['visao', 'Visão de gestão'], ['lancamentos', 'Lançamentos']] as const).map(
+            ([valor, rotulo]) => (
+              <button
+                key={valor}
+                onClick={() => setAba(valor)}
+                className={`min-h-[40px] rounded-md px-3 text-sm font-medium transition ${
+                  aba === valor ? 'bg-white text-marca-800 shadow-sm' : 'text-slate-600'
+                }`}
+              >
+                {rotulo}
+              </button>
+            ),
           )}
         </div>
-        <div className="cartao p-4">
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">A pagar</p>
-          <p className="numerico mt-1 text-2xl font-bold text-rose-700">
-            {formatarMoeda(resumo?.a_pagar_centavos ?? 0)}
-          </p>
-          {(resumo?.a_pagar_atrasado_centavos ?? 0) > 0 && (
-            <p className="text-xs text-rose-600">
-              {formatarMoeda(resumo!.a_pagar_atrasado_centavos)} em atraso
-            </p>
-          )}
-        </div>
-        <div className="cartao p-4">
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-            Recebido no mês
-          </p>
-          <p className="numerico mt-1 text-2xl font-bold text-slate-900">
-            {formatarMoeda(resumo?.recebido_no_mes_centavos ?? 0)}
-          </p>
-        </div>
-        <div className="cartao p-4">
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Pago no mês</p>
-          <p className="numerico mt-1 text-2xl font-bold text-slate-900">
-            {formatarMoeda(resumo?.pago_no_mes_centavos ?? 0)}
-          </p>
-          <p className="text-xs text-slate-500">
-            Saldo: {formatarMoeda((resumo?.recebido_no_mes_centavos ?? 0) - (resumo?.pago_no_mes_centavos ?? 0))}
-          </p>
+        <div className="flex flex-1 flex-wrap gap-2 sm:justify-end">
+          <Campo
+            type="date"
+            value={inicio}
+            onChange={(evento) => setInicio(evento.target.value)}
+            className="min-w-[150px] flex-1 sm:max-w-[170px]"
+          />
+          <Campo
+            type="date"
+            value={fim}
+            onChange={(evento) => setFim(evento.target.value)}
+            className="min-w-[150px] flex-1 sm:max-w-[170px]"
+          />
         </div>
       </div>
 
-      <Cartao titulo="Fluxo de caixa realizado (30 dias)" className="mt-4">
-        {grafico.length === 0 ? (
-          <Vazio titulo="Nenhum lançamento realizado no período" />
-        ) : (
-          <div className="h-56 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={grafico} margin={{ top: 5, right: 14, left: 4, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                <XAxis
-                    dataKey="data"
-                    tick={{ fontSize: 12, fill: '#64748b' }}
-                    tickLine={false}
-                    // Sem folga, o rótulo do último ponto é cortado pela
-                    // borda em telas estreitas.
-                    padding={{ left: 4, right: 4 }}
-                    minTickGap={18}
-                  />
-                <YAxis
-                    tick={{ fontSize: 12, fill: '#64748b' }}
-                    tickLine={false}
-                    axisLine={false}
-                    width={54}
-                    tickFormatter={(valor: number) =>
-                      // Uma casa decimal: sem ela, 1.500 e 2.400 virariam ambos "2k".
-                      valor >= 1000
-                        ? `${(valor / 1000).toFixed(1).replace('.0', '').replace('.', ',')}k`
-                        : String(valor)
-                    }
-                  />
-                <Tooltip
-                  formatter={(valor: number, nome: string) => [
-                    formatarMoeda(Math.round(valor * 100)),
-                    nome === 'entradas' ? 'Entradas' : 'Saídas',
-                  ]}
-                  contentStyle={{ borderRadius: 8, fontSize: 12, border: '1px solid #e2e8f0' }}
-                />
-                <Bar dataKey="entradas" fill="#059669" radius={[3, 3, 0, 0]} />
-                <Bar dataKey="saidas" fill="#e11d48" radius={[3, 3, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        )}
-      </Cartao>
+      {aba === 'visao' && gestao && (
+        <VisaoDeGestao dados={gestao} fluxo={fluxo} />
+      )}
 
-      <div className="mb-3 mt-5 grid gap-2 sm:grid-cols-3">
+      {aba === 'lancamentos' && (
+        <>
+      <div className="mb-3 grid gap-2 sm:grid-cols-3">
         <Selecao value={tipo} onChange={(evento) => { setTipo(evento.target.value); setPagina(1) }}>
           <option value="">Receitas e despesas</option>
           <option value="receita">Só receitas</option>
@@ -314,6 +302,8 @@ export function Financeiro() {
         )}
         <Paginacao pagina={pagina} total={lancamentos?.count ?? 0} aoMudar={setPagina} />
       </Cartao>
+        </>
+      )}
 
       {modal && (
         <ModalLancamento
@@ -485,5 +475,227 @@ function ModalLancamento({
         </div>
       </form>
     </Modal>
+  )
+}
+
+
+/**
+ * Visão de gestão.
+ *
+ * Separa de propósito duas contas que o lojista costuma misturar: o
+ * **resultado** (o que a loja ganhou) e o **caixa** (o dinheiro que entrou e
+ * saiu). Comprar estoque derruba o caixa sem ser prejuízo — o dinheiro virou
+ * mercadoria —, e essa diferença aparece explicada no rodapé.
+ */
+function VisaoDeGestao({ dados, fluxo }: { dados: Resultado; fluxo?: FluxoCaixa }) {
+  const { resultado, caixa, a_receber, a_pagar, estoque } = dados
+  const positivo = resultado.resultado_centavos >= 0
+
+  const grafico = (fluxo?.dias ?? []).map((dia) => ({
+    data: formatarData(dia.data).slice(0, 5),
+    entradas: dia.entradas_centavos / 100,
+    saidas: dia.saidas_centavos / 100,
+  }))
+
+  return (
+    <div className="space-y-4">
+      {/* ---------------- O que a loja ganhou ---------------- */}
+      <Cartao titulo="Resultado do período">
+        <dl className="space-y-2.5 text-sm">
+          <Linha rotulo="Faturamento" valor={resultado.faturamento_centavos}
+                 detalhe={`${resultado.vendas} venda(s) · ticket ${formatarMoeda(resultado.ticket_medio_centavos)}`} />
+          <Linha rotulo="Custo da mercadoria vendida" valor={-resultado.custo_mercadoria_centavos}
+                 detalhe="o que as peças vendidas custaram para a loja" />
+          <Linha
+            rotulo="Lucro bruto"
+            valor={resultado.lucro_bruto_centavos}
+            detalhe={`margem de ${formatarPercentual(resultado.margem_bruta)}`}
+            destaque
+          />
+          <Linha rotulo="Despesas da loja" valor={-resultado.despesas_operacionais_centavos}
+                 detalhe="aluguel, energia, salários — sem contar compra de mercadoria" />
+
+          <div className={`flex items-baseline justify-between gap-3 rounded-lg px-3 py-3 ${
+            positivo ? 'bg-emerald-50' : 'bg-rose-50'
+          }`}>
+            <div>
+              <dt className={`font-semibold ${positivo ? 'text-emerald-800' : 'text-rose-800'}`}>
+                {positivo ? 'Lucro do período' : 'Prejuízo do período'}
+              </dt>
+              <dd className="mt-0.5 text-xs text-slate-500">
+                é isto que a loja ganhou de verdade
+              </dd>
+            </div>
+            <span className={`numerico shrink-0 text-2xl font-bold ${
+              positivo ? 'text-emerald-700' : 'text-rose-700'
+            }`}>
+              {formatarMoeda(resultado.resultado_centavos)}
+            </span>
+          </div>
+        </dl>
+      </Cartao>
+
+      {/* ---------------- A receber e a pagar ---------------- */}
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Cartao titulo="A receber">
+          <p className="numerico text-3xl font-bold text-emerald-700">
+            {formatarMoeda(a_receber.total_centavos)}
+          </p>
+          <p className="mt-1 text-xs text-slate-500">
+            {a_receber.quantidade === 0
+              ? 'Nada em aberto — todas as vendas foram recebidas.'
+              : `${a_receber.quantidade} lançamento(s) em aberto, de vendas fiadas.`}
+          </p>
+          {a_receber.atrasado_centavos > 0 && (
+            <p className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-rose-50 px-2.5 py-1.5 text-xs font-medium text-rose-700">
+              <AlertTriangle size={13} />
+              {formatarMoeda(a_receber.atrasado_centavos)} vencido
+            </p>
+          )}
+        </Cartao>
+
+        <Cartao titulo="A pagar">
+          <p className="numerico text-3xl font-bold text-rose-700">
+            {formatarMoeda(a_pagar.total_centavos)}
+          </p>
+          <p className="mt-1 text-xs text-slate-500">
+            {a_pagar.quantidade === 0
+              ? 'Nenhuma conta em aberto.'
+              : `${a_pagar.quantidade} conta(s) a vencer.`}
+          </p>
+          {a_pagar.atrasado_centavos > 0 && (
+            <p className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-rose-50 px-2.5 py-1.5 text-xs font-medium text-rose-700">
+              <AlertTriangle size={13} />
+              {formatarMoeda(a_pagar.atrasado_centavos)} vencido
+            </p>
+          )}
+        </Cartao>
+      </div>
+
+      {/* ---------------- Caixa ---------------- */}
+      <Cartao titulo="Dinheiro no período">
+        <dl className="space-y-2.5 text-sm">
+          <Linha rotulo="Entrou" valor={caixa.entradas_centavos} detalhe="recebimentos de vendas" />
+          <Linha rotulo="Saiu" valor={-caixa.saidas_centavos}
+                 detalhe={`inclui ${formatarMoeda(caixa.compras_centavos)} em compra de mercadoria`} />
+          <Linha
+            rotulo="Saldo"
+            valor={caixa.saldo_centavos}
+            detalhe={caixa.saldo_centavos < 0 ? 'saiu mais do que entrou no período' : undefined}
+            destaque
+          />
+        </dl>
+
+        {resultado.resultado_centavos !== caixa.saldo_centavos && (
+          <Alerta tipo="informacao">
+            O lucro ({formatarMoeda(resultado.resultado_centavos)}) e o saldo de caixa
+            ({formatarMoeda(caixa.saldo_centavos)}) são diferentes porque{' '}
+            <strong>{formatarMoeda(estoque.custo_centavos)}</strong> viraram mercadoria na
+            prateleira. Esse dinheiro não sumiu — volta quando as {estoque.unidades} unidades
+            forem vendidas.
+          </Alerta>
+        )}
+      </Cartao>
+
+      {/* ---------------- Estoque como patrimônio ---------------- */}
+      <Cartao titulo="Estoque parado">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {[
+            { rotulo: 'Unidades', valor: String(estoque.unidades) },
+            { rotulo: 'Custou', valor: formatarMoeda(estoque.custo_centavos) },
+            { rotulo: 'Vale (a venda)', valor: formatarMoeda(estoque.venda_centavos) },
+            { rotulo: 'Lucro previsto', valor: formatarMoeda(estoque.lucro_previsto_centavos) },
+          ].map((item) => (
+            <div key={item.rotulo} className="rounded-lg bg-slate-50 p-3">
+              <p className="text-xs text-slate-500">{item.rotulo}</p>
+              <p className="numerico mt-0.5 font-bold text-slate-900">{item.valor}</p>
+            </div>
+          ))}
+        </div>
+        <p className="mt-3 text-xs text-slate-500">
+          Se tudo for vendido pelo preço atual, entram mais{' '}
+          {formatarMoeda(estoque.lucro_previsto_centavos)} de lucro.
+        </p>
+      </Cartao>
+
+      {/* ---------------- Fluxo diário ---------------- */}
+      <Cartao titulo="Entradas e saídas por dia">
+        {grafico.length === 0 ? (
+          <Vazio titulo="Nenhum movimento no período" />
+        ) : (
+          <div className="h-56 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={grafico} margin={{ top: 5, right: 14, left: 4, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+                <XAxis
+                  dataKey="data"
+                  tick={{ fontSize: 12, fill: '#64748b' }}
+                  tickLine={false}
+                  padding={{ left: 4, right: 4 }}
+                  minTickGap={18}
+                />
+                <YAxis
+                  tick={{ fontSize: 12, fill: '#64748b' }}
+                  tickLine={false}
+                  axisLine={false}
+                  width={54}
+                  tickFormatter={(valor: number) =>
+                    valor >= 1000
+                      ? `${(valor / 1000).toFixed(1).replace('.0', '').replace('.', ',')}k`
+                      : String(valor)
+                  }
+                />
+                <Tooltip
+                  formatter={(valor: number, nome: string) => [
+                    formatarMoeda(Math.round(valor * 100)),
+                    nome === 'entradas' ? 'Entradas' : 'Saídas',
+                  ]}
+                  contentStyle={{ borderRadius: 8, fontSize: 12, border: '1px solid #e2e8f0' }}
+                />
+                <Bar dataKey="entradas" fill="#059669" radius={[3, 3, 0, 0]} />
+                <Bar dataKey="saidas" fill="#e11d48" radius={[3, 3, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+      </Cartao>
+    </div>
+  )
+}
+
+/** Linha de um demonstrativo: rótulo à esquerda, valor com sinal à direita. */
+function Linha({
+  rotulo,
+  valor,
+  detalhe,
+  destaque = false,
+}: {
+  rotulo: string
+  valor: number
+  detalhe?: string
+  destaque?: boolean
+}) {
+  // `-0 < 0` é falso em JavaScript, mas o Intl formata -0 como "-R$ 0,00":
+  // uma despesa zerada apareceria com sinal de menos.
+  const negativo = valor < 0
+
+  return (
+    <div
+      className={`flex items-baseline justify-between gap-3 ${
+        destaque ? 'border-t border-slate-200 pt-2.5' : ''
+      }`}
+    >
+      <div className="min-w-0">
+        <dt className={destaque ? 'font-semibold text-slate-800' : 'text-slate-600'}>{rotulo}</dt>
+        {detalhe && <dd className="mt-0.5 text-xs text-slate-400">{detalhe}</dd>}
+      </div>
+      <dd
+        className={`numerico shrink-0 ${destaque ? 'text-lg font-bold' : 'font-medium'} ${
+          negativo ? 'text-rose-600' : 'text-slate-800'
+        }`}
+      >
+        {negativo ? `− ${formatarMoeda(Math.abs(valor))}` : formatarMoeda(Math.abs(valor))}
+      </dd>
+    </div>
   )
 }
