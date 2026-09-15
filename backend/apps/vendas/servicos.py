@@ -144,7 +144,7 @@ def _proximo_numero(loja) -> int:
     return (ultimo or 0) + 1
 
 
-def _verificar_idade(cliente, configuracao):
+def _verificar_idade(cliente):
     """Bloqueia venda a menor de idade identificado (ADR-0003)."""
     minima = getattr(settings, "IDADE_MINIMA_COMPRA", 18)
     if not minima or cliente is None or not cliente.data_nascimento:
@@ -178,7 +178,7 @@ def criar_venda(*, loja, usuario, itens, cliente=None, desconto=Decimal("0.00"),
         raise ErroDeNegocio(
             "Esta loja exige identificar o cliente na venda.", campo="cliente"
         )
-    _verificar_idade(cliente, configuracao)
+    _verificar_idade(cliente)
 
     venda = Venda.objects.create(
         loja=loja,
