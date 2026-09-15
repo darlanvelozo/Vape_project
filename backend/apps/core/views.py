@@ -1,11 +1,37 @@
-"""ViewSets base que aplicam o isolamento por loja."""
+"""Bases de view que aplicam o isolamento por loja."""
 
-from rest_framework import viewsets
+from rest_framework import views, viewsets
 
 from .contexto import definir_loja_atual
 
 
-class LojaViewSetMixin:
+class ResolverLojaMixin:
+    """
+    Publica a loja do usuário autenticado em `request.loja`.
+
+    **Toda view de domínio precisa deste mixin.** O `LojaAtualMiddleware` roda
+    antes de o DRF autenticar o JWT — naquele momento `request.user` ainda é
+    anônimo, então `request.loja` vem `None`. Uma view que confie apenas no
+    middleware enxerga loja nenhuma: no melhor caso devolve vazio, no pior
+    grava um registro órfão sem dono.
+    """
+
+    def initial(self, request, *args, **kwargs):
+        super().initial(request, *args, **kwargs)
+        loja = getattr(request.user, "loja", None)
+        request.loja = loja
+        definir_loja_atual(loja)
+
+    @property
+    def loja(self):
+        return getattr(self.request, "loja", None)
+
+
+class LojaAPIView(ResolverLojaMixin, views.APIView):
+    """APIView de domínio: use esta base, nunca `APIView` direto."""
+
+
+class LojaViewSetMixin(ResolverLojaMixin):
     """
     Recorta toda consulta pela loja do usuário autenticado.
 
@@ -16,22 +42,6 @@ class LojaViewSetMixin:
 
     # Definido pela subclasse: o queryset base, sem recorte.
     queryset = None
-
-    def initial(self, request, *args, **kwargs):
-        """
-        Publica a loja no contexto **depois** da autenticação JWT.
-
-        O middleware roda antes do DRF autenticar, então para a API é aqui que
-        `obter_loja_atual()` passa a devolver a loja certa.
-        """
-        super().initial(request, *args, **kwargs)
-        loja = getattr(request.user, "loja", None)
-        request.loja = loja
-        definir_loja_atual(loja)
-
-    @property
-    def loja(self):
-        return getattr(self.request, "loja", None)
 
     def get_queryset(self):
         queryset = super().get_queryset()

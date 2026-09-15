@@ -10,7 +10,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 
 from apps.core.exceptions import ErroDeNegocio
 from apps.core.permissions import EhDonoOuGerente, PertenceALoja
-from apps.core.views import LojaViewSetMixin
+from apps.core.views import LojaAPIView, LojaViewSetMixin
 from apps.lojas.serializers import ConfiguracaoLojaSerializer, LojaSerializer
 
 from .models import Papel, Usuario
@@ -55,7 +55,7 @@ class CadastroLojaView(CreateAPIView):
         )
 
 
-class UsuarioAtualView(APIView):
+class UsuarioAtualView(LojaAPIView):
     """GET /api/auth/eu — quem sou eu, minha loja e meu papel."""
 
     permission_classes = [PertenceALoja]
@@ -144,26 +144,32 @@ class UsuarioViewSet(LojaViewSetMixin, viewsets.ModelViewSet):
         return Response(self.get_serializer(usuario).data)
 
 
-class MinhaLojaView(APIView):
+class MinhaLojaView(LojaAPIView):
     """GET/PATCH /api/loja — dados cadastrais da própria loja."""
 
     permission_classes = [PertenceALoja]
 
     @extend_schema(responses=LojaSerializer)
     def get(self, request):
+        if request.loja is None:
+            raise ErroDeNegocio("Usuário sem loja vinculada.", campo="loja")
         return Response(LojaSerializer(request.loja).data)
 
     @extend_schema(request=LojaSerializer, responses=LojaSerializer)
     def patch(self, request):
         if not request.user.pode_gerenciar:
             raise ErroDeNegocio("Apenas dono ou gerente podem alterar os dados da loja.")
+        if request.loja is None:
+            # Sem instância, o serializer criaria uma loja nova em vez de
+            # atualizar a existente.
+            raise ErroDeNegocio("Usuário sem loja vinculada.", campo="loja")
         serializer = LojaSerializer(request.loja, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
 
 
-class ConfiguracaoLojaView(APIView):
+class ConfiguracaoLojaView(LojaAPIView):
     """GET/PATCH /api/loja/configuracao — preferências operacionais."""
 
     permission_classes = [PertenceALoja]
@@ -171,6 +177,9 @@ class ConfiguracaoLojaView(APIView):
     def _configuracao(self, loja):
         from apps.lojas.models import ConfiguracaoLoja
 
+        if loja is None:
+            # Nunca criar configuração sem dono: viraria linha órfã.
+            raise ErroDeNegocio("Usuário sem loja vinculada.", campo="loja")
         configuracao, _ = ConfiguracaoLoja.objects.get_or_create(loja=loja)
         return configuracao
 

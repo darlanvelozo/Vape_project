@@ -19,4 +19,6 @@ class LojaAdmin(admin.ModelAdmin):
 
 @admin.register(ConfiguracaoLoja)
 class ConfiguracaoLojaAdmin(admin.ModelAdmin):
-    list_display = ["loja", "permitir_fiado", "permitir_venda_sem_estoque"]
+    list_display = ["loja", "permitir_fiado", "permitir_venda_sem_estoque",
+                    "vitrine_publica"]
+    list_filter = ["vitrine_publica", "permitir_fiado"]

@@ -5,8 +5,8 @@ import { Ban, Check, Pencil, Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 
 import {
-  Alerta, AreaTexto, Botao, CabecalhoPagina, Campo, Carregando, Cartao, Modal,
-  Paginacao, Selecao, Selo, TabelaEnvolvida, Vazio,
+  Alerta, AreaTexto, Botao, BotaoIcone, CabecalhoPagina, Campo, Carregando, Cartao,
+  Modal, Paginacao, Selecao, Selo, TabelaEnvolvida, Vazio,
 } from '../componentes/ui'
 import { ErroApi, api, querystring } from '../lib/api'
 import { dataISO, formatarData, formatarMoeda, formatarTelefone, paraCentavos } from '../lib/formato'
@@ -77,7 +77,7 @@ export function Fornecedores() {
           <button
             key={valor}
             onClick={() => { setAba(valor); setPagina(1) }}
-            className={`px-4 py-2 text-sm font-medium capitalize transition ${
+            className={`min-h-[44px] px-4 text-sm font-medium capitalize transition ${
               aba === valor
                 ? 'border-b-2 border-marca-700 text-marca-800'
                 : 'text-slate-500 hover:text-slate-700'
@@ -130,20 +130,21 @@ export function Fornecedores() {
                         <td className="numerico text-right">{fornecedor.total_compras}</td>
                         <td className="text-right">
                           <div className="flex justify-end gap-1">
-                            <button
-                              onClick={() => setModalFornecedor(fornecedor)}
-                              className="rounded p-1.5 text-slate-400 hover:bg-slate-100 hover:text-marca-700"
+                            <BotaoIcone
+                              titulo="Editar fornecedor"
+                              aoClicar={() => setModalFornecedor(fornecedor)}
                             >
-                              <Pencil size={15} />
-                            </button>
-                            <button
-                              onClick={() => {
+                              <Pencil size={16} />
+                            </BotaoIcone>
+                            <BotaoIcone
+                              titulo="Remover fornecedor"
+                              perigo
+                              aoClicar={() => {
                                 if (confirm(`Remover “${fornecedor.nome}”?`)) excluir.mutate(fornecedor.id)
                               }}
-                              className="rounded p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600"
                             >
-                              <Trash2 size={15} />
-                            </button>
+                              <Trash2 size={16} />
+                            </BotaoIcone>
                           </div>
                         </td>
                       </tr>
@@ -205,30 +206,29 @@ export function Fornecedores() {
                       <td className="text-right">
                         <div className="flex justify-end gap-1">
                           {compra.status === 'rascunho' && (
-                            <button
-                              onClick={() => {
+                            <BotaoIcone
+                              titulo="Receber (dar entrada no estoque)"
+                              aoClicar={() => {
                                 if (confirm('Receber a compra? Isso dá entrada no estoque e atualiza o custo médio.')) {
                                   receber.mutate(compra.id)
                                 }
                               }}
-                              className="rounded p-1.5 text-slate-400 hover:bg-emerald-50 hover:text-emerald-600"
-                              title="Receber (dar entrada no estoque)"
                             >
-                              <Check size={15} />
-                            </button>
+                              <Check size={16} />
+                            </BotaoIcone>
                           )}
                           {compra.status !== 'cancelada' && (
-                            <button
-                              onClick={() => {
+                            <BotaoIcone
+                              titulo="Cancelar compra"
+                              perigo
+                              aoClicar={() => {
                                 if (confirm('Cancelar a compra? Se já recebida, o estoque é estornado.')) {
                                   cancelarCompra.mutate(compra.id)
                                 }
                               }}
-                              className="rounded p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600"
-                              title="Cancelar"
                             >
-                              <Ban size={15} />
-                            </button>
+                              <Ban size={16} />
+                            </BotaoIcone>
                           )}
                         </div>
                       </td>

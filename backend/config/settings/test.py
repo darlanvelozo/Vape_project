@@ -22,6 +22,7 @@ CACHES = {
 REST_FRAMEWORK = {**REST_FRAMEWORK, "DEFAULT_THROTTLE_RATES": {  # noqa: F405
     "login": None,
     "cadastro": None,
+    "vitrine": None,
 }}
 
 PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]

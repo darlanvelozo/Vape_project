@@ -6,6 +6,7 @@ import { Carregando } from './componentes/ui'
 import { useAutenticacao } from './lib/auth'
 import { Entrar } from './paginas/Entrar'
 import { PDV } from './paginas/PDV'
+import { Vitrine } from './paginas/Vitrine'
 
 /**
  * Entrar e PDV entram no pacote principal — são o caminho quente do balcão.
@@ -46,6 +47,8 @@ export function App() {
   if (!usuario) {
     return (
       <Routes>
+        {/* A vitrine é pública: responde igual com ou sem sessão. */}
+        <Route path="/vitrine/:slug" element={<Vitrine />} />
         <Route path="/entrar" element={<Entrar />} />
         <Route path="*" element={<Navigate to="/entrar" replace />} />
       </Routes>

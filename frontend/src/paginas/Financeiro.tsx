@@ -7,8 +7,8 @@ import { useSearchParams } from 'react-router-dom'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 import {
-  Alerta, AreaTexto, Botao, CabecalhoPagina, Campo, Carregando, Cartao, Modal,
-  Paginacao, Selecao, Selo, TabelaEnvolvida, Vazio,
+  Alerta, AreaTexto, Botao, BotaoIcone, CabecalhoPagina, Campo, Carregando, Cartao,
+  Modal, Paginacao, Selecao, Selo, TabelaEnvolvida, Vazio,
 } from '../componentes/ui'
 import { ErroApi, api, querystring } from '../lib/api'
 import { dataISO, formatarData, formatarMoeda, paraCentavos } from '../lib/formato'
@@ -159,9 +159,9 @@ export function Financeiro() {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={grafico} margin={{ top: 5, right: 5, left: 4, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                <XAxis dataKey="data" tick={{ fontSize: 11, fill: '#64748b' }} tickLine={false} />
+                <XAxis dataKey="data" tick={{ fontSize: 12, fill: '#64748b' }} tickLine={false} />
                 <YAxis
-                    tick={{ fontSize: 11, fill: '#64748b' }}
+                    tick={{ fontSize: 12, fill: '#64748b' }}
                     tickLine={false}
                     axisLine={false}
                     width={54}
@@ -199,12 +199,13 @@ export function Financeiro() {
           <option value="pago">Baixados</option>
           <option value="cancelado">Cancelados</option>
         </Selecao>
-        <label className="flex items-center gap-2 text-sm text-slate-700">
+        <label className="flex min-h-[44px] cursor-pointer items-center gap-2 rounded-lg px-2
+                          text-sm text-slate-700 transition active:bg-slate-100">
           <input
             type="checkbox"
             checked={atrasados}
             onChange={(evento) => { setAtrasados(evento.target.checked); setPagina(1) }}
-            className="h-4 w-4 rounded border-slate-300"
+            className="h-5 w-5 rounded border-slate-300"
           />
           Só em atraso
           {(resumo?.quantidade_atrasados ?? 0) > 0 && (
@@ -275,33 +276,25 @@ export function Financeiro() {
                     <td className="text-right">
                       <div className="flex justify-end gap-1">
                         {lancamento.status === 'pendente' && (
-                          <button
-                            onClick={() => baixar.mutate(lancamento.id)}
-                            className="rounded p-1.5 text-slate-400 hover:bg-emerald-50 hover:text-emerald-600"
-                            title="Dar baixa"
-                          >
-                            <Check size={15} />
-                          </button>
+                          <BotaoIcone titulo="Dar baixa" aoClicar={() => baixar.mutate(lancamento.id)}>
+                            <Check size={16} />
+                          </BotaoIcone>
                         )}
                         {lancamento.status === 'pago' && (
-                          <button
-                            onClick={() => estornar.mutate(lancamento.id)}
-                            className="rounded p-1.5 text-slate-400 hover:bg-amber-50 hover:text-amber-600"
-                            title="Estornar baixa"
-                          >
-                            <RotateCcw size={15} />
-                          </button>
+                          <BotaoIcone titulo="Estornar baixa" aoClicar={() => estornar.mutate(lancamento.id)}>
+                            <RotateCcw size={16} />
+                          </BotaoIcone>
                         )}
                         {!lancamento.venda && !lancamento.compra && (
-                          <button
-                            onClick={() => {
+                          <BotaoIcone
+                            titulo="Excluir lançamento"
+                            perigo
+                            aoClicar={() => {
                               if (confirm('Excluir este lançamento?')) excluir.mutate(lancamento.id)
                             }}
-                            className="rounded p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600"
-                            title="Excluir"
                           >
-                            <Trash2 size={15} />
-                          </button>
+                            <Trash2 size={16} />
+                          </BotaoIcone>
                         )}
                       </div>
                     </td>

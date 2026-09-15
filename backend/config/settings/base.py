@@ -163,6 +163,9 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {
         "login": env("THROTTLE_LOGIN", default="10/min"),
         "cadastro": env("THROTTLE_CADASTRO", default="5/hour"),
+        # Vitrine é pública: teto generoso para o cliente navegar, baixo
+        # o bastante para não servir de raspagem de catálogo.
+        "vitrine": env("THROTTLE_VITRINE", default="120/hour"),
     },
     "EXCEPTION_HANDLER": "apps.core.exceptions.tratador_de_excecao",
 }

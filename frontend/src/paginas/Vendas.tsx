@@ -5,8 +5,8 @@ import { Ban, Eye } from 'lucide-react'
 import { useState } from 'react'
 
 import {
-  Alerta, Botao, CabecalhoPagina, Campo, Carregando, Cartao, Modal, Paginacao,
-  Selecao, Selo, TabelaEnvolvida, Vazio,
+  Alerta, Botao, BotaoIcone, CabecalhoPagina, Campo, Carregando, Cartao, Modal,
+  Paginacao, Selecao, Selo, TabelaEnvolvida, Vazio,
 } from '../componentes/ui'
 import { ErroApi, api, querystring } from '../lib/api'
 import { useAutenticacao } from '../lib/auth'
@@ -104,13 +104,9 @@ export function Vendas() {
                       <Selo cor={CORES_STATUS[venda.status] ?? 'cinza'}>{venda.status_display}</Selo>
                     </td>
                     <td className="text-right">
-                      <button
-                        onClick={() => setDetalhe(venda.id)}
-                        className="rounded p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-marca-700"
-                        title="Ver detalhes"
-                      >
-                        <Eye size={15} />
-                      </button>
+                      <BotaoIcone titulo="Ver detalhes da venda" aoClicar={() => setDetalhe(venda.id)}>
+                        <Eye size={16} />
+                      </BotaoIcone>
                     </td>
                   </tr>
                 ))}

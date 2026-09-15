@@ -5,8 +5,8 @@ import { ChevronDown, ChevronRight, Package, Pencil, Plus, Tag, Trash2 } from 'l
 import { useState } from 'react'
 
 import {
-  Alerta, AreaTexto, Botao, CabecalhoPagina, Campo, Carregando, Cartao, Modal,
-  Paginacao, Selecao, Selo, TabelaEnvolvida, Vazio,
+  Alerta, AreaTexto, Botao, BotaoIcone, CabecalhoPagina, Campo, Carregando, Cartao,
+  Modal, Paginacao, Selecao, Selo, TabelaEnvolvida, Vazio,
 } from '../componentes/ui'
 import { ErroApi, api, querystring } from '../lib/api'
 import { useAutenticacao } from '../lib/auth'
@@ -77,7 +77,7 @@ export function Produtos() {
           <button
             key={valor}
             onClick={() => setAba(valor)}
-            className={`px-4 py-2 text-sm font-medium transition ${
+            className={`min-h-[44px] px-4 text-sm font-medium transition ${
               aba === valor
                 ? 'border-b-2 border-marca-700 text-marca-800'
                 : 'text-slate-500 hover:text-slate-700'
@@ -130,10 +130,13 @@ export function Produtos() {
                     <div className="flex items-center gap-3 px-4 py-3">
                       <button
                         onClick={() => setExpandido(aberto ? null : produto.id)}
-                        className="text-slate-400 transition hover:text-slate-700"
-                        aria-label={aberto ? 'Recolher' : 'Expandir'}
+                        className="acao-icone -ml-2 inline-flex h-11 w-11 shrink-0 items-center
+                                   justify-center rounded-lg text-slate-400 transition
+                                   hover:bg-slate-100 hover:text-slate-700 active:bg-slate-200"
+                        aria-label={aberto ? 'Recolher variações' : 'Expandir variações'}
+                        aria-expanded={aberto}
                       >
-                        {aberto ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                        {aberto ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
                       </button>
 
                       <div className="min-w-0 flex-1">
@@ -157,24 +160,20 @@ export function Produtos() {
 
                       {podeGerenciar && (
                         <div className="flex gap-1">
-                          <button
-                            onClick={() => setModalProduto(produto)}
-                            className="rounded p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-marca-700"
-                            title="Editar produto"
-                          >
-                            <Pencil size={15} />
-                          </button>
-                          <button
-                            onClick={() => {
+                          <BotaoIcone titulo="Editar produto" aoClicar={() => setModalProduto(produto)}>
+                            <Pencil size={16} />
+                          </BotaoIcone>
+                          <BotaoIcone
+                            titulo="Remover produto"
+                            perigo
+                            aoClicar={() => {
                               if (confirm(`Remover “${produto.nome}”? Produtos com histórico são apenas desativados.`)) {
                                 excluir.mutate(produto.id)
                               }
                             }}
-                            className="rounded p-1.5 text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
-                            title="Remover produto"
                           >
-                            <Trash2 size={15} />
-                          </button>
+                            <Trash2 size={16} />
+                          </BotaoIcone>
                         </div>
                       )}
                     </div>
@@ -233,12 +232,12 @@ export function Produtos() {
                                   </td>
                                   {podeGerenciar && (
                                     <td className="text-right">
-                                      <button
-                                        onClick={() => setModalVariacao({ produto, variacao })}
-                                        className="rounded p-1 text-slate-400 hover:text-marca-700"
+                                      <BotaoIcone
+                                        titulo="Editar variação"
+                                        aoClicar={() => setModalVariacao({ produto, variacao })}
                                       >
-                                        <Pencil size={14} />
-                                      </button>
+                                        <Pencil size={15} />
+                                      </BotaoIcone>
                                     </td>
                                   )}
                                 </tr>
@@ -441,12 +440,12 @@ function ModalProduto({
         )}
 
         {produto && (
-          <label className="flex items-center gap-2 text-sm text-slate-700">
+          <label className="flex min-h-[44px] cursor-pointer items-center gap-2 text-sm text-slate-700">
             <input
               type="checkbox"
               checked={dados.ativo}
               onChange={(evento) => setDados({ ...dados, ativo: evento.target.checked })}
-              className="h-4 w-4 rounded border-slate-300"
+              className="h-5 w-5 rounded border-slate-300"
             />
             Produto ativo (aparece no PDV)
           </label>
@@ -588,12 +587,12 @@ function ModalVariacao({
           />
         </div>
 
-        <label className="flex items-center gap-2 text-sm text-slate-700">
+        <label className="flex min-h-[44px] cursor-pointer items-center gap-2 text-sm text-slate-700">
           <input
             type="checkbox"
             checked={dados.ativo}
             onChange={(evento) => setDados({ ...dados, ativo: evento.target.checked })}
-            className="h-4 w-4 rounded border-slate-300"
+            className="h-5 w-5 rounded border-slate-300"
           />
           Variação ativa
         </label>

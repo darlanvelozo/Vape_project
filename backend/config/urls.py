@@ -23,6 +23,7 @@ from apps.clientes.views import ClienteViewSet
 from apps.estoque.views import MovimentoEstoqueViewSet, PosicaoEstoqueViewSet
 from apps.financeiro.views import CategoriaFinanceiraViewSet, LancamentoViewSet
 from apps.fornecedores.views import CompraViewSet, FornecedorViewSet
+from apps.lojas.views import VitrinePublicaView
 from apps.produtos.views import CategoriaViewSet, MarcaViewSet, ProdutoViewSet, VariacaoViewSet
 from apps.relatorios.views import (
     CurvaABCView,
@@ -85,6 +86,9 @@ urlpatterns_relatorios = [
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+
+    # Vitrine pública — único endpoint de domínio sem autenticação.
+    path("api/vitrine/<slug:slug>/", VitrinePublicaView.as_view(), name="vitrine"),
 
     path("api/auth/", include((urlpatterns_autenticacao, "auth"))),
     path("api/relatorios/", include((urlpatterns_relatorios, "relatorios"))),

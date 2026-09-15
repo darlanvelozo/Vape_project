@@ -115,7 +115,7 @@ export function Relatorios() {
             <button
               key={item.chave}
               onClick={() => setAtivo(item.chave)}
-              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+              className={`min-h-[40px] rounded-lg px-3 text-sm font-medium transition ${
                 ativo === item.chave
                   ? 'bg-marca-700 text-white shadow-sm'
                   : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50'

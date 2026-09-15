@@ -5,14 +5,55 @@
 @layer base {
   html {
     -webkit-text-size-adjust: 100%;
+    /* Elimina o atraso de 300ms do toque e o zoom por duplo-toque, que no
+       PDV faz o vendedor achar que o clique não pegou. */
+    touch-action: manipulation;
   }
   body {
     @apply bg-slate-100 text-slate-800 antialiased;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    /* A página nunca rola de lado: conteúdo largo rola dentro do próprio
+       container (tabelas, gráficos), não arrastando a tela inteira. */
+    overflow-x: hidden;
   }
   /* Tabular figures: dinheiro em coluna precisa alinhar. */
   .numerico {
     font-variant-numeric: tabular-nums;
+  }
+
+  /*
+   * No iOS, campo com fonte menor que 16px faz o Safari dar zoom ao focar e
+   * a tela fica desalinhada até o usuário sair do campo. 16px no celular
+   * resolve; no desktop volta a 14px, que é mais adequado à densidade.
+   */
+  @media (max-width: 639px) {
+    input, select, textarea {
+      font-size: 16px;
+    }
+  }
+
+  /*
+   * Dedo não é cursor: em tela sensível ao toque, todo controle tem ao menos
+   * 44px de altura — o mínimo recomendado por Apple HIG, Material e
+   * WCAG 2.5.5 para acerto confiável.
+   */
+  @media (pointer: coarse) {
+    button,
+    a[role='button'],
+    input:not([type='checkbox']):not([type='radio']),
+    select,
+    textarea {
+      min-height: 44px;
+    }
+    /* Botões-ícone das tabelas: quadrados e confortáveis. */
+    button.acao-icone {
+      min-width: 44px;
+    }
+  }
+
+  /* Respeita a faixa inferior dos aparelhos com gesto de início (notch). */
+  .area-segura-inferior {
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
   }
 }
 
@@ -28,7 +69,7 @@
     @apply mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500;
   }
   .cartao {
-    @apply rounded-xl border border-slate-200 bg-white shadow-sm;
+    @apply min-w-0 rounded-xl border border-slate-200 bg-white shadow-sm;
   }
   .tabela {
     @apply w-full border-collapse text-sm;

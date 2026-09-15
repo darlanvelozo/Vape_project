@@ -3,6 +3,43 @@
 Todas as mudanças relevantes deste projeto são registradas aqui.
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
+## [1.2.0] — 2026-09-15
+
+### Adicionado
+- **Vitrine pública**: página sem senha (`/vitrine/<slug>`) com o que está
+  disponível em estoque, para a loja mandar aos clientes. Nasce desligada e
+  é ativada em Configurações → Vitrine pública, onde também fica o link para
+  copiar. Expõe o mínimo: só itens com saldo, sem custo, sem margem e sem
+  quantidade exata — a disponibilidade aparece em faixas ("última unidade",
+  "poucas unidades", "disponível"). Traz aviso de idade mínima, tem limite de
+  requisições por IP e não é indexada por buscadores.
+- `noindex` em todo o site (cabeçalho `X-Robots-Tag` e `robots.txt`): nem o
+  sistema nem a vitrine pertencem a buscador.
+- Teste de arquitetura que recusa view de domínio sem resolução de loja.
+
+### Corrigido
+- **`/api/loja/` e `/api/loja/configuracao/` não enxergavam a loja.**
+  `request.loja` vem do middleware, que roda antes de o DRF autenticar o JWT
+  — naquele instante o usuário ainda é anônimo. A tela "Dados da loja" abria
+  com os campos vazios, a de "Operação" respondia HTTP 409, e salvar criava
+  uma **loja nova e vazia** em vez de atualizar a existente. As views passam a
+  herdar de `core.views.LojaAPIView`, que resolve a loja depois da
+  autenticação.
+
+### Usabilidade em celular
+- Painel rolava de lado no iPhone SE: o cartão do gráfico é item de grid e,
+  sem `min-width: 0`, não encolhia abaixo do conteúdo.
+- Campos com fonte menor que 16px faziam o Safari dar zoom ao focar,
+  desalinhando a tela no meio da venda.
+- Alvos de toque abaixo de 44px (menu, abas, ícones de ação em tabela,
+  interruptores, links de rodapé de cartão) foram ajustados ao mínimo
+  recomendado por Apple HIG, Material e WCAG 2.5.5.
+- Barras fixas do PDV e da vitrine respeitam a faixa do gesto de início nos
+  aparelhos sem botão físico.
+- `touch-action: manipulation` elimina o atraso de 300ms e o zoom por
+  duplo-toque, que no balcão faziam o clique parecer não ter pego.
+- Componente `BotaoIcone` padroniza a área de toque das colunas de ação.
+
 ## [1.1.0] — 2026-09-15
 
 ### Adicionado

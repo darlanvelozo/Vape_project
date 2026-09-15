@@ -18,6 +18,7 @@ dados.
 | **Sistema** | https://vape.2-24-122-160.sslip.io |
 | **API (docs)** | https://vape.2-24-122-160.sslip.io/api/docs/ |
 | **Lojas ativas** | `luxury_vapes` (operação real) e uma loja de demonstração |
+| **Vitrine da loja** | https://vape.2-24-122-160.sslip.io/vitrine/luxury_vapes |
 
 > O endereço usa [sslip.io](https://sslip.io) porque ainda não há domínio
 > próprio (CONTEXT.md §5.7). Trocar por um domínio é mudar o `server_name` no
@@ -50,6 +51,9 @@ dados.
 - **Relatórios** — mais vendidos, margem por produto, curva ABC, giro de
   estoque, formas de pagamento e desempenho da equipe.
 - **Equipe** — papéis de dono, gerente e vendedor, com permissões distintas.
+- **Vitrine pública** — página sem senha com o que há disponível, para enviar
+  aos clientes. Desligada por padrão; ativa em Configurações → Vitrine
+  pública. Não mostra custo, margem nem quantidade exata.
 
 ## Desenvolvimento local
 

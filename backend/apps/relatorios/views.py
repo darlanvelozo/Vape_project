@@ -14,11 +14,11 @@ from django.db.models import Count, DecimalField, ExpressionWrapper, F, Sum
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from apps.clientes.models import Cliente
 from apps.core.permissions import EhDonoOuGerente, PertenceALoja
 from apps.core.utils import para_centavos
+from apps.core.views import LojaAPIView
 from apps.financeiro.models import Lancamento, StatusLancamento, TipoLancamento
 from apps.produtos.models import Variacao
 from apps.vendas.models import ItemVenda, StatusVenda, Venda
@@ -27,14 +27,10 @@ from apps.vendas.servicos import caixa_aberto, calcular_saldo_do_caixa
 DECIMAL = DecimalField(max_digits=16, decimal_places=2)
 
 
-class BaseRelatorioView(APIView):
+class BaseRelatorioView(LojaAPIView):
     """Resolve a loja e o período pedido na querystring."""
 
     permission_classes = [PertenceALoja]
-
-    def initial(self, request, *args, **kwargs):
-        super().initial(request, *args, **kwargs)
-        request.loja = getattr(request.user, "loja", None)
 
     def periodo(self, request):
         hoje = timezone.localdate()

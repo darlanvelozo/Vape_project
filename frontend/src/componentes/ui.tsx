@@ -25,9 +25,11 @@ const ESTILOS_BOTAO: Record<VarianteBotao, string> = {
   fantasma: 'bg-transparent text-slate-600 hover:bg-slate-100 focus-visible:ring-slate-400',
 }
 
+// As alturas mínimas valem no celular (ver a regra `pointer: coarse` em
+// index.css); no desktop o padding define o tamanho.
 const TAMANHOS_BOTAO = {
-  pequeno: 'px-2.5 py-1.5 text-xs gap-1.5',
-  medio: 'px-3.5 py-2 text-sm gap-2',
+  pequeno: 'px-3 py-1.5 text-xs gap-1.5',
+  medio: 'px-3.5 py-2.5 text-sm gap-2',
   grande: 'px-5 py-3 text-base gap-2',
 }
 
@@ -79,7 +81,10 @@ export function Campo({ rotulo, erro, dica, className, id, ...resto }: CampoProp
       )}
       <input
         id={identificador}
-        className={clsx('campo', erro && 'border-rose-400 focus:border-rose-500 focus:ring-rose-500/30')}
+        className={clsx(
+          'campo',
+          erro && 'border-rose-400 focus:border-rose-500 focus:ring-rose-500/30',
+        )}
         aria-invalid={Boolean(erro)}
         {...resto}
       />
@@ -298,6 +303,39 @@ export function CabecalhoPagina({
       </div>
       {acoes && <div className="flex flex-wrap gap-2">{acoes}</div>}
     </header>
+  )
+}
+
+/**
+ * Botão só de ícone, das colunas de ação.
+ *
+ * Existe para padronizar a área de toque: solto, o ícone de 15px deixava um
+ * alvo de ~27px, abaixo do mínimo confortável no celular.
+ */
+export function BotaoIcone({
+  titulo,
+  aoClicar,
+  children,
+  perigo = false,
+}: {
+  titulo: string
+  aoClicar: () => void
+  children: ReactNode
+  perigo?: boolean
+}) {
+  return (
+    <button
+      type="button"
+      onClick={aoClicar}
+      title={titulo}
+      aria-label={titulo}
+      className={clsx(
+        'acao-icone inline-flex items-center justify-center rounded-lg p-2 text-slate-400 transition',
+        perigo ? 'hover:bg-rose-50 hover:text-rose-600' : 'hover:bg-slate-100 hover:text-marca-700',
+      )}
+    >
+      {children}
+    </button>
   )
 }
 

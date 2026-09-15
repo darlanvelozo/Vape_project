@@ -65,7 +65,7 @@ export function Layout() {
         if (!visiveis.length) return null
         return (
           <div key={grupo}>
-            <p className="mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+            <p className="mb-1.5 px-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
               {grupo}
             </p>
             <ul className="space-y-0.5">
@@ -76,7 +76,7 @@ export function Layout() {
                     end={para === '/'}
                     className={({ isActive }) =>
                       clsx(
-                        'flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition',
+                        'flex min-h-[44px] items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition',
                         isActive
                           ? 'bg-marca-700 text-white shadow-sm'
                           : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
@@ -120,9 +120,13 @@ export function Layout() {
           <aside className="absolute left-0 top-0 flex h-full w-64 flex-col bg-white shadow-xl">
             <div className="flex h-14 items-center justify-between border-b border-slate-200 px-4">
               <span className="font-bold text-slate-900">💨 Vape Project</span>
-              <button onClick={() => setMenuAberto(false)} className="p-1 text-slate-500">
-                <X size={20} />
-                <span className="sr-only">Fechar menu</span>
+              <button
+                onClick={() => setMenuAberto(false)}
+                aria-label="Fechar menu"
+                className="-mr-1 inline-flex h-11 w-11 items-center justify-center rounded-lg
+                           text-slate-500 transition active:bg-slate-100"
+              >
+                <X size={22} />
               </button>
             </div>
             <div className="flex-1 overflow-y-auto">{navegacao}</div>
@@ -134,10 +138,11 @@ export function Layout() {
         <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-3 border-b border-slate-200 bg-white/95 px-3 backdrop-blur sm:px-5">
           <button
             onClick={() => setMenuAberto(true)}
-            className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 lg:hidden"
+            aria-label="Abrir menu"
+            className="-ml-1 inline-flex h-11 w-11 items-center justify-center rounded-lg
+                       text-slate-600 transition hover:bg-slate-100 active:bg-slate-200 lg:hidden"
           >
-            <Menu size={20} />
-            <span className="sr-only">Abrir menu</span>
+            <Menu size={22} />
           </button>
 
           <span className="truncate text-sm font-semibold text-slate-700 lg:hidden">
@@ -147,7 +152,7 @@ export function Layout() {
           <div className="ml-auto relative">
             <button
               onClick={() => setContaAberta((estado) => !estado)}
-              className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-slate-700 transition hover:bg-slate-100"
+              className="flex h-11 items-center gap-2 rounded-lg px-2 text-sm text-slate-700 transition hover:bg-slate-100"
             >
               <span className="flex h-7 w-7 items-center justify-center rounded-full bg-marca-700 text-xs font-semibold text-white">
                 {usuario?.nome.slice(0, 2).toUpperCase()}
@@ -167,7 +172,7 @@ export function Layout() {
                   </div>
                   <button
                     onClick={sair}
-                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-rose-600 transition hover:bg-rose-50"
+                    className="flex min-h-[44px] w-full items-center gap-2 px-3 py-2 text-left text-sm text-rose-600 transition hover:bg-rose-50"
                   >
                     <LogOut size={15} />
                     Sair

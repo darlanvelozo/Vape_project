@@ -105,6 +105,33 @@ class ConfiguracaoLoja(TimestampedModel):
         default="Obrigado pela preferência!",
     )
 
+    # ---------- Vitrine pública ----------
+    # Página sem senha para o cliente ver o que há disponível. Nasce
+    # **desligada**: publicar catálogo é decisão do lojista, não padrão do
+    # sistema — inclusive porque, no Brasil, a RDC 855/2024 da ANVISA
+    # restringe a propaganda do ramo (ver ADR-0003).
+    vitrine_publica = models.BooleanField(
+        "vitrine pública ativa",
+        default=False,
+        help_text="Publica uma página sem senha com os itens disponíveis em estoque.",
+    )
+    vitrine_mostrar_preco = models.BooleanField(
+        "mostrar preços na vitrine", default=True
+    )
+    vitrine_mensagem = models.CharField(
+        "mensagem da vitrine",
+        max_length=200,
+        blank=True,
+        default="Chame no WhatsApp para reservar.",
+        help_text="Aparece no topo da vitrine, abaixo do nome da loja.",
+    )
+    vitrine_whatsapp = models.CharField(
+        "WhatsApp da vitrine",
+        max_length=20,
+        blank=True,
+        help_text="Só dígitos com DDD. Vazio esconde o botão de contato.",
+    )
+
     class Meta:
         verbose_name = "configuração da loja"
         verbose_name_plural = "configurações das lojas"

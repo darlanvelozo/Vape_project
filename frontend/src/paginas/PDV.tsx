@@ -171,7 +171,7 @@ export function PDV() {
   }
 
   return (
-    <div className="grid gap-4 pb-24 lg:grid-cols-[1fr_400px] lg:pb-0">
+    <div className="grid gap-4 pb-32 lg:grid-cols-[1fr_400px] lg:pb-0">
       {/* ------------------------------------------------ busca e catálogo */}
       <div>
         <div className="relative mb-3">
@@ -312,7 +312,7 @@ export function PDV() {
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => alterarQuantidade(item.variacao.id, -1)}
-                          className="rounded border border-slate-300 p-1 text-slate-600 hover:bg-slate-50"
+                          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-300 text-slate-600 transition hover:bg-slate-50 active:bg-slate-100"
                         >
                           <Minus size={13} />
                         </button>
@@ -321,7 +321,7 @@ export function PDV() {
                         </span>
                         <button
                           onClick={() => alterarQuantidade(item.variacao.id, 1)}
-                          className="rounded border border-slate-300 p-1 text-slate-600 hover:bg-slate-50"
+                          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-300 text-slate-600 transition hover:bg-slate-50 active:bg-slate-100"
                         >
                           <Plus size={13} />
                         </button>
@@ -383,7 +383,8 @@ export function PDV() {
       </aside>
 
       {/* ------------------------------------------------ carrinho no celular */}
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white p-3 shadow-[0_-4px_12px_rgba(15,23,42,0.08)] lg:hidden">
+      <div className="area-segura-inferior fixed inset-x-0 bottom-0 z-30 border-t border-slate-200
+                      bg-white px-3 pt-3 shadow-[0_-4px_12px_rgba(15,23,42,0.08)] lg:hidden">
         {carrinho.length > 0 && (
           <button
             onClick={() => setResumoMovelAberto(true)}
@@ -424,7 +425,7 @@ export function PDV() {
               <div className="flex shrink-0 items-center gap-1">
                 <button
                   onClick={() => alterarQuantidade(item.variacao.id, -1)}
-                  className="rounded border border-slate-300 p-1"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 transition active:bg-slate-100"
                 >
                   <Minus size={13} />
                 </button>
@@ -433,7 +434,7 @@ export function PDV() {
                 </span>
                 <button
                   onClick={() => alterarQuantidade(item.variacao.id, 1)}
-                  className="rounded border border-slate-300 p-1"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 transition active:bg-slate-100"
                 >
                   <Plus size={13} />
                 </button>

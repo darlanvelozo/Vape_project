@@ -25,6 +25,10 @@ export interface ConfiguracaoLoja {
   prazo_fiado_dias: number
   alerta_estoque_minimo: boolean
   mensagem_recibo: string
+  vitrine_publica: boolean
+  vitrine_mostrar_preco: boolean
+  vitrine_mensagem: string
+  vitrine_whatsapp: string
 }
 
 export interface Usuario {

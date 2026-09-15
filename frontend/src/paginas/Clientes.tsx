@@ -5,8 +5,8 @@ import { History, Pencil, Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 
 import {
-  Alerta, AreaTexto, Botao, CabecalhoPagina, Campo, Carregando, Cartao, Modal,
-  Paginacao, Selo, TabelaEnvolvida, Vazio,
+  Alerta, AreaTexto, Botao, BotaoIcone, CabecalhoPagina, Campo, Carregando, Cartao,
+  Modal, Paginacao, Selo, TabelaEnvolvida, Vazio,
 } from '../componentes/ui'
 import { ErroApi, api, querystring } from '../lib/api'
 import { formatarData, formatarDataHora, formatarMoeda, formatarTelefone, paraCentavos } from '../lib/formato'
@@ -110,31 +110,23 @@ export function Clientes() {
                     </td>
                     <td className="text-right">
                       <div className="flex justify-end gap-1">
-                        <button
-                          onClick={() => setHistorico(cliente.id)}
-                          className="rounded p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-marca-700"
-                          title="Histórico de compras"
-                        >
-                          <History size={15} />
-                        </button>
-                        <button
-                          onClick={() => setModal(cliente)}
-                          className="rounded p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-marca-700"
-                          title="Editar"
-                        >
-                          <Pencil size={15} />
-                        </button>
-                        <button
-                          onClick={() => {
+                        <BotaoIcone titulo="Histórico de compras" aoClicar={() => setHistorico(cliente.id)}>
+                          <History size={16} />
+                        </BotaoIcone>
+                        <BotaoIcone titulo="Editar cliente" aoClicar={() => setModal(cliente)}>
+                          <Pencil size={16} />
+                        </BotaoIcone>
+                        <BotaoIcone
+                          titulo="Remover cliente"
+                          perigo
+                          aoClicar={() => {
                             if (confirm(`Remover “${cliente.nome}”? Clientes com histórico são apenas desativados.`)) {
                               excluir.mutate(cliente.id)
                             }
                           }}
-                          className="rounded p-1.5 text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
-                          title="Remover"
                         >
-                          <Trash2 size={15} />
-                        </button>
+                          <Trash2 size={16} />
+                        </BotaoIcone>
                       </div>
                     </td>
                   </tr>
@@ -276,12 +268,12 @@ function ModalCliente({ cliente, aoFechar }: { cliente: Cliente | null; aoFechar
         />
 
         {cliente && (
-          <label className="flex items-center gap-2 text-sm text-slate-700">
+          <label className="flex min-h-[44px] cursor-pointer items-center gap-2 text-sm text-slate-700">
             <input
               type="checkbox"
               checked={dados.ativo}
               onChange={(evento) => setDados({ ...dados, ativo: evento.target.checked })}
-              className="h-4 w-4 rounded border-slate-300"
+              className="h-5 w-5 rounded border-slate-300"
             />
             Cliente ativo
           </label>

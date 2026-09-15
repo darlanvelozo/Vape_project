@@ -221,3 +221,89 @@ class TestPermissoesPorPapel:
             "papel": Papel.DONO, "senha": "SenhaForte123",
         }, format="json")
         assert resposta.status_code == 400
+
+
+class TestViewsQueNaoSaoViewSet:
+    """
+    Regressão: `request.loja` vem do middleware, que roda **antes** de o DRF
+    autenticar o JWT — ali `request.user` ainda é anônimo. Uma APIView que
+    confie só nisso enxerga loja nenhuma: `/api/loja/` devolvia campos vazios,
+    `/api/loja/configuracao/` estourava 409, e o PATCH criava uma loja nova em
+    vez de atualizar a existente.
+    """
+
+    def test_dados_da_loja_vem_preenchidos(self, api_dono, loja):
+        resposta = api_dono.get("/api/loja/")
+        assert resposta.status_code == 200
+        assert resposta.json()["nome"] == loja.nome
+        assert resposta.json()["id"] == loja.id
+
+    def test_configuracao_da_loja_responde(self, api_dono):
+        resposta = api_dono.get("/api/loja/configuracao/")
+        assert resposta.status_code == 200
+        assert "permitir_fiado" in resposta.json()
+
+    def test_patch_atualiza_a_loja_e_nao_cria_outra(self, api_dono, loja):
+        from apps.lojas.models import Loja
+
+        antes = Loja.objects.count()
+        resposta = api_dono.patch("/api/loja/", {"cidade": "Campinas"}, format="json")
+
+        assert resposta.status_code == 200
+        assert Loja.objects.count() == antes, "nenhuma loja nova pode surgir de um PATCH"
+        loja.refresh_from_db()
+        assert loja.cidade == "Campinas"
+        assert loja.nome, "o nome não pode ser apagado"
+
+    def test_patch_da_configuracao_persiste(self, api_dono, loja):
+        resposta = api_dono.patch(
+            "/api/loja/configuracao/", {"prazo_fiado_dias": 15}, format="json"
+        )
+        assert resposta.status_code == 200
+        loja.configuracao.refresh_from_db()
+        assert loja.configuracao.prazo_fiado_dias == 15
+
+    def test_relatorio_enxerga_so_a_propria_loja(self, api_dono, dados_da_outra_loja):
+        resposta = api_dono.get("/api/relatorios/dashboard/")
+        assert resposta.status_code == 200
+        # A outra loja não tem venda, mas tem produto: o estoque não pode vazar.
+        assert resposta.json()["estoque"]["unidades"] == 0
+
+    def test_vendedor_nao_altera_dados_da_loja(self, api_vendedor):
+        resposta = api_vendedor.patch("/api/loja/", {"nome": "Invadida"}, format="json")
+        assert resposta.status_code == 400
+
+
+class TestArquitetura:
+    """
+    Trava estrutural: toda view de domínio precisa resolver a loja depois da
+    autenticação. Sem este teste, a próxima APIView escrita à mão repetiria o
+    bug silenciosamente.
+    """
+
+    def test_toda_view_de_dominio_resolve_a_loja(self):
+        import importlib
+
+        from apps.core.views import ResolverLojaMixin
+
+        # Views de autenticação não têm loja resolvida por definição: o
+        # cadastro ainda vai criá-la, e login/refresh são anônimos.
+        ISENTAS = {"LoginView", "CadastroLojaView", "AlterarSenhaView"}
+
+        faltando = []
+        for app in ("usuarios", "produtos", "estoque", "clientes",
+                    "fornecedores", "vendas", "financeiro", "relatorios"):
+            modulo = importlib.import_module(f"apps.{app}.views")
+            for nome in dir(modulo):
+                classe = getattr(modulo, nome)
+                if not (isinstance(classe, type) and nome.endswith("View")):
+                    continue
+                if classe.__module__ != modulo.__name__ or nome in ISENTAS:
+                    continue
+                if not issubclass(classe, ResolverLojaMixin):
+                    faltando.append(f"{app}.{nome}")
+
+        assert not faltando, (
+            "Estas views não resolvem a loja e enxergariam request.loja=None: "
+            f"{faltando}. Herde de core.views.LojaAPIView."
+        )

@@ -85,13 +85,13 @@ export function Painel() {
         descricao="Como a loja está hoje e no mês."
         acoes={
           painel.caixa.aberto ? (
-            <Link to="/pdv">
+            <Link to="/pdv" className="flex min-h-[44px] items-center">
               <Selo cor="verde">
                 Caixa aberto · {formatarMoeda(painel.caixa.saldo_centavos)}
               </Selo>
             </Link>
           ) : (
-            <Link to="/caixa">
+            <Link to="/caixa" className="flex min-h-[44px] items-center">
               <Selo cor="ambar">Caixa fechado — abra para vender</Selo>
             </Link>
           )
@@ -154,7 +154,7 @@ export function Painel() {
         <div className="mt-4 flex flex-wrap gap-2">
           {painel.estoque.abaixo_do_minimo > 0 && (
             <Link to="/estoque?filtro=minimo">
-              <span className="inline-flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800 transition hover:bg-amber-100">
+              <span className="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 text-sm text-amber-800 transition hover:bg-amber-100">
                 <AlertTriangle size={15} />
                 {painel.estoque.abaixo_do_minimo} item(ns) no estoque mínimo
               </span>
@@ -162,7 +162,7 @@ export function Painel() {
           )}
           {painel.estoque.zerados > 0 && (
             <Link to="/estoque?filtro=zerados">
-              <span className="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800 transition hover:bg-rose-100">
+              <span className="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border border-rose-200 bg-rose-50 px-3 text-sm text-rose-800 transition hover:bg-rose-100">
                 <PackageX size={15} />
                 {painel.estoque.zerados} item(ns) zerado(s)
               </span>
@@ -170,7 +170,7 @@ export function Painel() {
           )}
           {painel.financeiro.atrasados > 0 && (
             <Link to="/financeiro?filtro=atrasados">
-              <span className="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800 transition hover:bg-rose-100">
+              <span className="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border border-rose-200 bg-rose-50 px-3 text-sm text-rose-800 transition hover:bg-rose-100">
                 <AlertTriangle size={15} />
                 {painel.financeiro.atrasados} conta(s) em atraso
               </span>
@@ -201,9 +201,9 @@ export function Painel() {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                  <XAxis dataKey="data" tick={{ fontSize: 11, fill: '#64748b' }} tickLine={false} />
+                  <XAxis dataKey="data" tick={{ fontSize: 12, fill: '#64748b' }} tickLine={false} />
                   <YAxis
-                    tick={{ fontSize: 11, fill: '#64748b' }}
+                    tick={{ fontSize: 12, fill: '#64748b' }}
                     tickLine={false}
                     axisLine={false}
                     width={54}
@@ -287,14 +287,22 @@ export function Painel() {
                 <dt className="text-slate-500">Dinheiro na gaveta</dt>
                 <dd className="numerico font-medium">{formatarMoeda(painel.caixa.saldo_centavos)}</dd>
               </div>
-              <Link to="/caixa" className="block pt-1 text-xs font-medium text-marca-700 hover:underline">
+              <Link
+                to="/caixa"
+                className="-mx-1 flex min-h-[44px] items-center px-1 text-sm font-medium
+                           text-marca-700 hover:underline"
+              >
                 Conferir e fechar →
               </Link>
             </dl>
           ) : (
             <div className="text-sm text-slate-500">
               <p>Nenhum caixa aberto.</p>
-              <Link to="/caixa" className="mt-2 inline-block text-xs font-medium text-marca-700 hover:underline">
+              <Link
+                to="/caixa"
+                className="-mx-1 mt-1 flex min-h-[44px] items-center px-1 text-sm font-medium
+                           text-marca-700 hover:underline"
+              >
                 Abrir caixa →
               </Link>
             </div>
@@ -310,7 +318,11 @@ export function Painel() {
               <dt className="text-slate-500">Itens zerados</dt>
               <dd className="numerico font-medium">{formatarNumero(painel.estoque.zerados)}</dd>
             </div>
-            <Link to="/produtos" className="block pt-1 text-xs font-medium text-marca-700 hover:underline">
+            <Link
+              to="/produtos"
+              className="-mx-1 flex min-h-[44px] items-center px-1 text-sm font-medium
+                         text-marca-700 hover:underline"
+            >
               Gerenciar produtos →
             </Link>
           </dl>

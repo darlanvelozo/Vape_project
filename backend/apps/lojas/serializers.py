@@ -15,6 +15,10 @@ class ConfiguracaoLojaSerializer(serializers.ModelSerializer):
             "prazo_fiado_dias",
             "alerta_estoque_minimo",
             "mensagem_recibo",
+            "vitrine_publica",
+            "vitrine_mostrar_preco",
+            "vitrine_mensagem",
+            "vitrine_whatsapp",
         ]
 
 

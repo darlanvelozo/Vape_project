@@ -5,8 +5,8 @@ import { Plus, RotateCcw, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 
 import {
-  Alerta, Botao, CabecalhoPagina, Campo, Carregando, Cartao, Modal, Selecao,
-  Selo, TabelaEnvolvida,
+  Alerta, Botao, BotaoIcone, CabecalhoPagina, Campo, Carregando, Cartao, Modal,
+  Selecao, Selo, TabelaEnvolvida,
 } from '../componentes/ui'
 import { ErroApi, api } from '../lib/api'
 import { useAutenticacao } from '../lib/auth'
@@ -21,11 +21,12 @@ const PAPEIS: { valor: Papel; rotulo: string; descricao: string }[] = [
 
 export function Configuracoes() {
   const { usuario, podeGerenciar, atualizarUsuario } = useAutenticacao()
-  const [aba, setAba] = useState<'loja' | 'operacao' | 'equipe' | 'conta'>('loja')
+  const [aba, setAba] = useState<'loja' | 'operacao' | 'vitrine' | 'equipe' | 'conta'>('loja')
 
   const abas = [
     { chave: 'loja' as const, rotulo: 'Dados da loja' },
     { chave: 'operacao' as const, rotulo: 'Operação' },
+    { chave: 'vitrine' as const, rotulo: 'Vitrine pública' },
     ...(podeGerenciar ? [{ chave: 'equipe' as const, rotulo: 'Equipe' }] : []),
     { chave: 'conta' as const, rotulo: 'Minha conta' },
   ]
@@ -39,7 +40,7 @@ export function Configuracoes() {
           <button
             key={item.chave}
             onClick={() => setAba(item.chave)}
-            className={`whitespace-nowrap px-4 py-2 text-sm font-medium transition ${
+            className={`min-h-[44px] whitespace-nowrap px-4 text-sm font-medium transition ${
               aba === item.chave
                 ? 'border-b-2 border-marca-700 text-marca-800'
                 : 'text-slate-500 hover:text-slate-700'
@@ -52,6 +53,7 @@ export function Configuracoes() {
 
       {aba === 'loja' && <DadosDaLoja podeEditar={podeGerenciar} />}
       {aba === 'operacao' && <Operacao podeEditar={podeGerenciar} />}
+      {aba === 'vitrine' && <VitrinePublica podeEditar={podeGerenciar} slug={usuario?.loja.slug ?? ''} />}
       {aba === 'equipe' && podeGerenciar && <Equipe />}
       {aba === 'conta' && <MinhaConta aoAtualizar={atualizarUsuario} />}
     </>
@@ -232,7 +234,7 @@ function Operacao({ podeEditar }: { podeEditar: boolean }) {
                 <p className="text-sm font-medium text-slate-800">{opcao.rotulo}</p>
                 <p className="mt-0.5 text-xs text-slate-500">{opcao.descricao}</p>
               </div>
-              <label className="relative inline-flex shrink-0 cursor-pointer items-center">
+              <label className="relative inline-flex shrink-0 cursor-pointer items-center py-2.5">
                 <input
                   type="checkbox"
                   className="peer sr-only"
@@ -279,6 +281,142 @@ function Operacao({ podeEditar }: { podeEditar: boolean }) {
       </Cartao>
 
       {salvo && <Alerta tipo="sucesso">Configuração salva.</Alerta>}
+    </div>
+  )
+}
+
+function VitrinePublica({ podeEditar, slug }: { podeEditar: boolean; slug: string }) {
+  const clienteQuery = useQueryClient()
+  const [copiado, setCopiado] = useState(false)
+
+  const { data: configuracao, isLoading } = useQuery({
+    queryKey: ['configuracao-loja'],
+    queryFn: () => api.get<ConfiguracaoLoja>('/loja/configuracao/'),
+  })
+
+  const salvar = useMutation({
+    mutationFn: (mudanca: Partial<ConfiguracaoLoja>) =>
+      api.patch<ConfiguracaoLoja>('/loja/configuracao/', mudanca),
+    onSuccess: () => clienteQuery.invalidateQueries({ queryKey: ['configuracao-loja'] }),
+  })
+
+  if (isLoading || !configuracao) return <Carregando />
+
+  const endereco = `${window.location.origin}/vitrine/${slug}`
+
+  async function copiar() {
+    try {
+      await navigator.clipboard.writeText(endereco)
+      setCopiado(true)
+      setTimeout(() => setCopiado(false), 2500)
+    } catch {
+      // Sem permissão de área de transferência (comum em HTTP ou navegador
+      // antigo): o link continua visível e selecionável na tela.
+      setCopiado(false)
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      <Cartao titulo="Página pública de catálogo">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-slate-800">Vitrine ativa</p>
+            <p className="mt-0.5 text-xs text-slate-500">
+              Publica um link sem senha com o que está disponível em estoque. Itens
+              esgotados somem sozinhos; custo, margem e quantidade exata nunca aparecem.
+            </p>
+          </div>
+          <label className="relative inline-flex shrink-0 cursor-pointer items-center">
+            <input
+              type="checkbox"
+              className="peer sr-only"
+              disabled={!podeEditar}
+              checked={configuracao.vitrine_publica}
+              onChange={(evento) => salvar.mutate({ vitrine_publica: evento.target.checked })}
+            />
+            <div className="h-6 w-11 rounded-full bg-slate-300 transition peer-checked:bg-marca-700 peer-disabled:opacity-50 after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:transition peer-checked:after:translate-x-5" />
+          </label>
+        </div>
+
+        {configuracao.vitrine_publica && (
+          <div className="mt-4 rounded-lg border border-marca-200 bg-marca-50 p-3">
+            <p className="rotulo">Link para enviar aos clientes</p>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <input
+                readOnly
+                value={endereco}
+                onFocus={(evento) => evento.target.select()}
+                className="campo flex-1 bg-white text-xs sm:text-sm"
+              />
+              <div className="flex gap-2">
+                <Botao variante="secundario" onClick={copiar} className="flex-1 sm:flex-none">
+                  {copiado ? 'Copiado!' : 'Copiar'}
+                </Botao>
+                <a href={endereco} target="_blank" rel="noopener noreferrer" className="flex-1 sm:flex-none">
+                  <Botao variante="secundario" className="w-full">Abrir</Botao>
+                </a>
+              </div>
+            </div>
+          </div>
+        )}
+      </Cartao>
+
+      {configuracao.vitrine_publica && (
+        <>
+          <Cartao titulo="O que aparece">
+            <div className="space-y-3">
+              <label className="flex cursor-pointer items-start justify-between gap-4 py-2">
+                <span>
+                  <span className="block text-sm font-medium text-slate-800">Mostrar preços</span>
+                  <span className="mt-0.5 block text-xs text-slate-500">
+                    Desligado, a vitrine lista só os modelos e sabores disponíveis.
+                  </span>
+                </span>
+                <input
+                  type="checkbox"
+                  disabled={!podeEditar}
+                  checked={configuracao.vitrine_mostrar_preco}
+                  onChange={(evento) => salvar.mutate({ vitrine_mostrar_preco: evento.target.checked })}
+                  className="mt-1 h-5 w-5 shrink-0 rounded border-slate-300"
+                />
+              </label>
+
+              <Campo
+                rotulo="Mensagem do topo"
+                defaultValue={configuracao.vitrine_mensagem}
+                disabled={!podeEditar}
+                onBlur={(evento) => {
+                  if (evento.target.value !== configuracao.vitrine_mensagem) {
+                    salvar.mutate({ vitrine_mensagem: evento.target.value })
+                  }
+                }}
+                placeholder="Chame no WhatsApp para reservar."
+              />
+
+              <Campo
+                rotulo="WhatsApp de contato"
+                defaultValue={configuracao.vitrine_whatsapp}
+                disabled={!podeEditar}
+                onBlur={(evento) => {
+                  const numero = evento.target.value.replace(/\D/g, '')
+                  if (numero !== configuracao.vitrine_whatsapp) {
+                    salvar.mutate({ vitrine_whatsapp: numero })
+                  }
+                }}
+                placeholder="11999998888"
+                dica="DDD + número. Vazio esconde o botão de contato na vitrine."
+              />
+            </div>
+          </Cartao>
+
+          <Alerta tipo="aviso">
+            A vitrine é um catálogo informativo, sem venda on-line, e traz o aviso de
+            idade mínima. Ela não é indexada por buscadores, mas o link é público:
+            quem tiver o endereço consegue abrir.
+          </Alerta>
+        </>
+      )}
     </div>
   )
 }
@@ -342,25 +480,21 @@ function Equipe() {
                     </td>
                     <td className="text-right">
                       {membro.is_active ? (
-                        <button
-                          onClick={() => {
+                        <BotaoIcone
+                          titulo="Desativar acesso"
+                          perigo
+                          aoClicar={() => {
                             if (confirm(`Desativar o acesso de ${membro.nome}?`)) {
                               desativar.mutate(membro.id)
                             }
                           }}
-                          className="rounded p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600"
-                          title="Desativar acesso"
                         >
-                          <Trash2 size={15} />
-                        </button>
+                          <Trash2 size={16} />
+                        </BotaoIcone>
                       ) : (
-                        <button
-                          onClick={() => reativar.mutate(membro.id)}
-                          className="rounded p-1.5 text-slate-400 hover:bg-emerald-50 hover:text-emerald-600"
-                          title="Reativar acesso"
-                        >
-                          <RotateCcw size={15} />
-                        </button>
+                        <BotaoIcone titulo="Reativar acesso" aoClicar={() => reativar.mutate(membro.id)}>
+                          <RotateCcw size={16} />
+                        </BotaoIcone>
                       )}
                     </td>
                   </tr>
