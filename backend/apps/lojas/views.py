@@ -69,6 +69,7 @@ class VitrinePublicaView(APIView):
             produto = produtos.setdefault(
                 variacao.produto_id,
                 {
+                    "id": variacao.produto_id,
                     "nome": variacao.produto.nome,
                     "marca": variacao.produto.marca.nome if variacao.produto.marca else "",
                     "categoria": (
@@ -76,10 +77,15 @@ class VitrinePublicaView(APIView):
                         if variacao.produto.categoria else ""
                     ),
                     "descricao": variacao.produto.descricao,
+                    "imagem_url": (
+                        request.build_absolute_uri(variacao.produto.imagem.url)
+                        if variacao.produto.imagem else None
+                    ),
                     "opcoes": [],
                 },
             )
             opcao = {
+                "id": variacao.id,
                 "sabor": variacao.sabor,
                 "nicotina_mg": (
                     str(variacao.nicotina_mg.normalize())

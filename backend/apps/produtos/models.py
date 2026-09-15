@@ -12,6 +12,7 @@ from django.core.validators import MinValueValidator
 from django.db import models
 from simple_history.models import HistoricalRecords
 
+from apps.core.imagens import caminho_da_imagem
 from apps.core.models import LojaModel
 
 
@@ -61,6 +62,13 @@ class Marca(LojaModel):
 class Produto(LojaModel):
     nome = models.CharField("nome", max_length=140)
     descricao = models.TextField("descrição", blank=True)
+    imagem = models.ImageField(
+        "imagem",
+        upload_to=caminho_da_imagem,
+        blank=True,
+        null=True,
+        help_text="Foto do modelo, exibida na vitrine pública.",
+    )
     tipo = models.CharField("tipo", max_length=20, choices=TipoProduto.choices,
                             default=TipoProduto.DESCARTAVEL)
     categoria = models.ForeignKey(
@@ -73,7 +81,7 @@ class Produto(LojaModel):
     )
     ativo = models.BooleanField("ativo", default=True)
 
-    history = HistoricalRecords(excluded_fields=["atualizado_em"])
+    history = HistoricalRecords(excluded_fields=["atualizado_em", "imagem"])
 
     class Meta:
         verbose_name = "produto"

@@ -1,14 +1,16 @@
 /** Catálogo: produtos, variações, categorias e marcas. */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ChevronDown, ChevronRight, Package, Pencil, Plus, Tag, Trash2 } from 'lucide-react'
+import {
+  ChevronDown, ChevronRight, ImageOff, Package, Pencil, Plus, Tag, Trash2, Upload,
+} from 'lucide-react'
 import { useState } from 'react'
 
 import {
   Alerta, AreaTexto, Botao, BotaoIcone, CabecalhoPagina, Campo, Carregando, Cartao,
   Modal, Paginacao, Selecao, Selo, TabelaEnvolvida, Vazio,
 } from '../componentes/ui'
-import { ErroApi, api, querystring } from '../lib/api'
+import { ErroApi, api, enviarArquivo, querystring } from '../lib/api'
 import { useAutenticacao } from '../lib/auth'
 import { formatarMoeda, paraCentavos } from '../lib/formato'
 import type { Categoria, Marca, Pagina, Produto, Variacao } from '../lib/tipos'
@@ -138,6 +140,20 @@ export function Produtos() {
                       >
                         {aberto ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
                       </button>
+
+                      {produto.imagem_url ? (
+                        <img
+                          src={produto.imagem_url}
+                          alt={produto.nome}
+                          loading="lazy"
+                          className="h-11 w-11 shrink-0 rounded-lg object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center
+                                        rounded-lg bg-slate-100 text-slate-300">
+                          <ImageOff size={16} />
+                        </div>
+                      )}
 
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
@@ -405,6 +421,8 @@ function ModalProduto({
           placeholder="Opcional"
         />
 
+        {produto && <CampoImagem produto={produto} />}
+
         {!produto && (
           <fieldset className="rounded-lg border border-slate-200 p-3">
             <legend className="px-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -463,6 +481,90 @@ function ModalProduto({
         </div>
       </form>
     </Modal>
+  )
+}
+
+/**
+ * Foto do modelo.
+ *
+ * Só aparece na edição, não no cadastro: o produto precisa existir para
+ * receber o arquivo, e pedir a foto antes de salvar deixaria o usuário sem
+ * saber se o envio valeu quando o cadastro falhasse.
+ */
+function CampoImagem({ produto }: { produto: Produto }) {
+  const clienteQuery = useQueryClient()
+  const [erro, setErro] = useState<string | null>(null)
+  const [previa, setPrevia] = useState<string | null>(produto.imagem_url)
+
+  const enviar = useMutation({
+    mutationFn: (arquivo: File) =>
+      enviarArquivo<Produto>(`/produtos/${produto.id}/`, { imagem: arquivo }),
+    onSuccess: (atualizado) => {
+      setPrevia(atualizado.imagem_url)
+      setErro(null)
+      clienteQuery.invalidateQueries({ queryKey: ['produtos'] })
+    },
+    onError: (falha) =>
+      setErro(falha instanceof ErroApi ? falha.message : 'Não foi possível enviar a imagem.'),
+  })
+
+  const remover = useMutation({
+    mutationFn: () => api.delete(`/produtos/${produto.id}/imagem/`),
+    onSuccess: () => {
+      setPrevia(null)
+      clienteQuery.invalidateQueries({ queryKey: ['produtos'] })
+    },
+  })
+
+  return (
+    <div>
+      <p className="rotulo">Foto do modelo</p>
+      <div className="flex items-center gap-3">
+        {previa ? (
+          <img src={previa} alt={produto.nome} className="h-20 w-20 rounded-lg object-cover" />
+        ) : (
+          <div className="flex h-20 w-20 items-center justify-center rounded-lg bg-slate-100 text-slate-300">
+            <ImageOff size={22} />
+          </div>
+        )}
+
+        <div className="min-w-0 flex-1 space-y-2">
+          <label className="inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-lg
+                            border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700
+                            transition hover:bg-slate-50">
+            <Upload size={15} />
+            {enviar.isPending ? 'Enviando…' : previa ? 'Trocar foto' : 'Escolher foto'}
+            <input
+              type="file"
+              accept="image/*"
+              className="sr-only"
+              disabled={enviar.isPending}
+              onChange={(evento) => {
+                const arquivo = evento.target.files?.[0]
+                if (arquivo) enviar.mutate(arquivo)
+                evento.target.value = ''
+              }}
+            />
+          </label>
+
+          {previa && (
+            <button
+              type="button"
+              onClick={() => remover.mutate()}
+              className="block min-h-[36px] text-xs text-rose-600 hover:underline"
+            >
+              Remover foto
+            </button>
+          )}
+
+          <p className="text-xs text-slate-500">
+            Aparece na vitrine pública. JPG, PNG ou WEBP — o sistema reduz o tamanho
+            automaticamente.
+          </p>
+        </div>
+      </div>
+      {erro && <div className="mt-2"><Alerta>{erro}</Alerta></div>}
+    </div>
   )
 }
 

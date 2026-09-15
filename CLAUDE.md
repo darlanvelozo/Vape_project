@@ -16,7 +16,7 @@
 fornecedores, financeiro e relatórios). Várias lojas, de donos diferentes,
 na mesma instalação.
 
-- **Versão atual:** **1.4.0, em produção** desde 15/09/2026, com a loja
+- **Versão atual:** **1.5.0, em produção** desde 15/09/2026, com a loja
   `luxury_vapes` operando com dados reais
 - **Endereço:** https://vape.2-24-122-160.sslip.io (sslip.io — ainda sem
   domínio próprio)
@@ -86,3 +86,6 @@ backup e roda a suíte antes de reiniciar).
   data pura como UTC e mostra o dia anterior no Brasil; usar `formatarData` e
   `dataISO` de `lib/formato.ts`.
 - Não commitar `dados/*.json`: são dados comerciais da loja.
+- **Imagem enviada por usuário passa por `core.imagens.processar`.** Nunca
+  gravar o arquivo cru: ele pode não ser imagem, pesar 8 MB ou trazer nome
+  com caminho.

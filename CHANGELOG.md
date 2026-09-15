@@ -3,6 +3,27 @@
 Todas as mudanças relevantes deste projeto são registradas aqui.
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
+## [1.5.0] — 2026-09-15
+
+### Adicionado
+- **Foto por modelo no catálogo.** Upload em Produtos, exibida na vitrine e na
+  listagem. A imagem é reduzida e recomprimida no envio — foto de celular chega
+  com 3 a 8 MB e sairia assim para quem abre a vitrine no 4G. Orientação da
+  câmera é respeitada, transparência ganha fundo branco e tudo vira JPEG de no
+  máximo 900 px.
+- **Pedido de reserva na vitrine.** O cliente monta o carrinho e o botão abre o
+  WhatsApp da loja com a lista pronta: itens, quantidades e total. O carrinho
+  sobrevive a fechar a aba.
+- A quantidade que o cliente pode pedir respeita a faixa de estoque — "última
+  unidade" não deixa somar mais de uma —, sem revelar o saldo exato.
+
+### Segurança
+- O upload valida que o arquivo é mesmo uma imagem (não basta a extensão), com
+  limite de 10 MB e nome gerado por UUID: nome enviado pelo usuário nunca chega
+  ao disco.
+- `/media/` passa a declarar explicitamente os tipos servidos e os cabeçalhos
+  de segurança, por ser o único diretório alimentado por upload.
+
 ## [1.4.0] — 2026-09-15
 
 ### Adicionado

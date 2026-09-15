@@ -200,8 +200,8 @@ class TestIsolamento:
         }
         assert set(corpo["loja"]) == {"nome", "cidade", "uf", "whatsapp"}
         assert set(corpo["produtos"][0]) == {
-            "nome", "marca", "categoria", "descricao", "opcoes",
+            "id", "nome", "marca", "categoria", "descricao", "imagem_url", "opcoes",
         }
         assert set(corpo["produtos"][0]["opcoes"][0]) == {
-            "sabor", "nicotina_mg", "puffs", "disponibilidade", "preco_centavos",
+            "id", "sabor", "nicotina_mg", "puffs", "disponibilidade", "preco_centavos",
         }

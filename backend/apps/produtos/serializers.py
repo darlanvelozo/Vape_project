@@ -102,14 +102,31 @@ class ProdutoSerializer(serializers.ModelSerializer):
     categoria_nome = serializers.CharField(source="categoria.nome", read_only=True)
     marca_nome = serializers.CharField(source="marca.nome", read_only=True)
     saldo_total = serializers.IntegerField(read_only=True)
+    imagem_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Produto
         fields = [
             "id", "nome", "descricao", "tipo", "categoria", "categoria_nome",
-            "marca", "marca_nome", "ativo", "variacoes", "saldo_total", "criado_em",
+            "marca", "marca_nome", "ativo", "variacoes", "saldo_total",
+            "imagem", "imagem_url", "criado_em",
         ]
         read_only_fields = ["id", "criado_em"]
+        extra_kwargs = {"imagem": {"write_only": True, "required": False, "allow_null": True}}
+
+    def get_imagem_url(self, produto) -> str | None:
+        """URL absoluta, para a tela funcionar em qualquer host."""
+        if not produto.imagem:
+            return None
+        requisicao = self.context.get("request")
+        url = produto.imagem.url
+        return requisicao.build_absolute_uri(url) if requisicao else url
+
+    def validate_imagem(self, arquivo):
+        """Reduz e recomprime antes de gravar — ver `core.imagens`."""
+        from apps.core.imagens import processar
+
+        return processar(arquivo)
 
     def validate_categoria(self, categoria):
         return self._validar_pertence_a_loja(categoria, "categoria")

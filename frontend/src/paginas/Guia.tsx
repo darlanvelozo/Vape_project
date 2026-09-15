@@ -301,6 +301,17 @@ const SECOES: Secao[] = [
             os outros sabores.</>,
         ]} />
 
+        <Titulo>Foto do produto</Titulo>
+        <Paragrafo>
+          Edite o produto e use <Termo>Escolher foto</Termo>. A imagem aparece na vitrine
+          pública e na lista de produtos. É uma foto por modelo — todos os sabores daquele
+          modelo mostram a mesma.
+        </Paragrafo>
+        <Nota>
+          Pode mandar a foto direto do celular: o sistema reduz e comprime sozinho, então
+          não precisa se preocupar com o tamanho do arquivo.
+        </Nota>
+
         <Titulo>Estoque mínimo</Titulo>
         <Paragrafo>
           É o ponto em que o sistema avisa para repor. Deixe em zero nos itens que você
@@ -526,11 +537,29 @@ const SECOES: Secao[] = [
           margem nem a quantidade exata — em vez do número, aparece "última unidade",
           "poucas unidades" ou "disponível", para não entregar seu estoque à concorrência.
         </Paragrafo>
+        <Titulo>Como o cliente faz um pedido</Titulo>
+        <Paragrafo>
+          Ele monta o carrinho na vitrine e toca em <Termo>Reservar no WhatsApp</Termo>. A
+          conversa abre no seu WhatsApp com a lista pronta: itens, quantidades e total.
+          A partir daí é você quem combina a reserva.
+        </Paragrafo>
+        <Nota tom="atencao">
+          O pedido da vitrine <Termo>não</Termo> baixa estoque nem registra venda. Ele é um
+          recado. A venda só existe quando alguém a registra no PDV — assim o estoque nunca
+          cai por uma reserva que não se confirmou.
+        </Nota>
+        <Paragrafo>
+          A quantidade que o cliente pode pedir respeita o que você tem: item marcado como
+          "última unidade" não deixa somar mais de uma.
+        </Paragrafo>
+
         <Titulo>Como ativar</Titulo>
         <Passos itens={[
           <>Vá em <Link to="/configuracoes" className="font-medium text-marca-700 hover:underline">Configurações → Vitrine pública</Link>.</>,
           'Ligue a chave e copie o link que aparece.',
-          'Preencha o WhatsApp, senão o botão de contato não aparece para o cliente.',
+          <>Preencha o <Termo>WhatsApp</Termo> — sem ele o cliente monta o pedido mas não
+            tem como enviar.</>,
+          <>Suba as fotos dos modelos em <Link to="/produtos" className="font-medium text-marca-700 hover:underline">Produtos</Link>: vitrine com foto vende bem mais que lista de nomes.</>,
         ]} />
         <Nota tom="atencao">
           É um catálogo informativo, não uma loja on-line: ninguém compra por ali. O link

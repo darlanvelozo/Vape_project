@@ -119,6 +119,7 @@ export interface Produto {
   ativo: boolean
   variacoes: Variacao[]
   saldo_total: number
+  imagem_url: string | null
   criado_em: string
 }
 

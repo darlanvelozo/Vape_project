@@ -16,6 +16,9 @@ drf-spectacular==0.27.2
 django-filter==24.3
 django-cors-headers==4.6.0
 
+# --- Imagens (catálogo e vitrine) ---
+Pillow==11.1.0
+
 # --- Auditoria ---
 django-simple-history==3.7.0
 

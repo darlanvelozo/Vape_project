@@ -1,6 +1,7 @@
 from django.db.models import Count, Prefetch, Q
 from drf_spectacular.utils import extend_schema
 from rest_framework.decorators import action
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
 
 from apps.core.exceptions import ErroDeNegocio
@@ -44,6 +45,8 @@ class ProdutoViewSet(LojaViewSet):
     queryset = Produto.objects.select_related("categoria", "marca")
     serializer_class = ProdutoSerializer
     permission_classes = [LeituraParaTodosEscritaParaGestao]
+    # A foto sobe por multipart; o resto do cadastro continua em JSON.
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
     filterset_class = ProdutoFilter
     search_fields = ["nome", "descricao", "variacoes__sku", "variacoes__codigo_barras",
                      "variacoes__sabor"]
@@ -84,6 +87,22 @@ class ProdutoViewSet(LojaViewSet):
             return
         instancia.variacoes.all().delete()
         instancia.delete()
+
+    @extend_schema(request=None, responses=ProdutoSerializer)
+    @action(detail=True, methods=["delete"], url_path="imagem")
+    def remover_imagem(self, request, pk=None):
+        """
+        DELETE /api/produtos/{id}/imagem — tira a foto do produto.
+
+        Precisa de rota própria porque um PATCH multipart não consegue
+        enviar `null`: o campo ausente é indistinguível de "não mexer".
+        """
+        produto = self.get_object()
+        if produto.imagem:
+            produto.imagem.delete(save=False)
+            produto.imagem = None
+            produto.save(update_fields=["imagem", "atualizado_em"])
+        return Response(self.get_serializer(produto).data)
 
     @extend_schema(request=VariacaoSerializer, responses=VariacaoSerializer)
     @action(detail=True, methods=["post"], url_path="variacoes")

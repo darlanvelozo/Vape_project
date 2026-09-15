@@ -151,6 +151,41 @@ export async function requisicao<T = unknown>(caminho: string, opcoes: Opcoes = 
   return dados as T
 }
 
+/**
+ * Envio de arquivo (multipart).
+ *
+ * Não passa pelo `requisicao` comum porque ali o corpo é serializado em JSON
+ * e o Content-Type é fixado — no multipart quem define o cabeçalho, com o
+ * boundary correto, é o próprio navegador.
+ */
+export async function enviarArquivo<T>(
+  caminho: string,
+  campos: Record<string, string | Blob>,
+  metodo: 'POST' | 'PATCH' = 'PATCH',
+): Promise<T> {
+  const corpo = new FormData()
+  for (const [chave, valor] of Object.entries(campos)) corpo.append(chave, valor)
+
+  const executar = async () => {
+    const cabecalhos: Record<string, string> = {}
+    const token = armazenamento.access()
+    if (token) cabecalhos.Authorization = `Bearer ${token}`
+    return fetch(`${BASE}${caminho}`, { method: metodo, headers: cabecalhos, body: corpo })
+  }
+
+  let resposta = await executar()
+  if (resposta.status === 401 && armazenamento.refresh()) {
+    if (await renovarToken()) resposta = await executar()
+  }
+
+  const texto = await resposta.text()
+  const dados = texto ? JSON.parse(texto) : null
+  if (!resposta.ok) {
+    throw new ErroApi(resposta.status, mensagemDoCorpo(dados, resposta.status), camposDoCorpo(dados))
+  }
+  return dados as T
+}
+
 export const api = {
   get: <T>(caminho: string) => requisicao<T>(caminho),
   post: <T>(caminho: string, corpo?: unknown, semAutenticacao = false) =>

@@ -52,9 +52,10 @@ dados.
 - **Relatórios** — mais vendidos, margem por produto, curva ABC, giro de
   estoque, formas de pagamento e desempenho da equipe.
 - **Equipe** — papéis de dono, gerente e vendedor, com permissões distintas.
-- **Vitrine pública** — página sem senha com o que há disponível, para enviar
-  aos clientes. Desligada por padrão; ativa em Configurações → Vitrine
-  pública. Não mostra custo, margem nem quantidade exata.
+- **Vitrine pública** — página sem senha com foto, carrinho e pedido de reserva
+  que abre no WhatsApp da loja. Desligada por padrão; ativa em Configurações →
+  Vitrine pública. Não mostra custo, margem nem quantidade exata, e o pedido não
+  baixa estoque — a venda só existe quando registrada no PDV.
 - **Guia de uso** — `/guia`, dentro do sistema: como operar cada tela e por que
   cada regra existe, para treinar a equipe sem depender de ninguém.
 
