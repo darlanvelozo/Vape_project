@@ -16,7 +16,8 @@
 fornecedores, financeiro e relatórios). Várias lojas, de donos diferentes,
 na mesma instalação.
 
-- **Versão atual:** **1.0.0, em produção** desde 15/09/2026
+- **Versão atual:** **1.1.0, em produção** desde 15/09/2026, com a loja
+  `luxury_vapes` operando com dados reais
 - **Endereço:** https://vape.2-24-122-160.sslip.io (sslip.io — ainda sem
   domínio próprio)
 - **Bloco corrente:** Blocos 0 a 6 concluídos. O Bloco 7 (extras) está aberto
@@ -50,6 +51,8 @@ backup e roda a suíte antes de reiniciar).
 - **Commits:** português, imperativo, prefixo por área
   (`backend:`, `frontend:`, `docs:`, `deploy:`).
 - **Testes:** toda regra de negócio (preço, estoque, caixa) nasce com teste.
+  Frontend: `npm test` (vitest) cobre `lib/formato.ts`, onde mora a conversão
+  de dinheiro e data.
 - **Dinheiro:** `Decimal` no backend, centavos inteiros na API, nunca float.
 
 ## 4. O que NÃO fazer
@@ -64,3 +67,7 @@ backup e roda a suíte antes de reiniciar).
   de um caso em `backend/tests/test_isolamento_tenant.py`.
 - Não expor `DecimalField` de dinheiro direto no serializer: usar
   `core.serializers.CentavosField` (ADR-0002).
+- **Não usar `new Date('AAAA-MM-DD')` no frontend.** O construtor interpreta
+  data pura como UTC e mostra o dia anterior no Brasil; usar `formatarData` e
+  `dataISO` de `lib/formato.ts`.
+- Não commitar `dados/*.json`: são dados comerciais da loja.

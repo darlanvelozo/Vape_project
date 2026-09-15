@@ -1,0 +1,79 @@
+{
+  "_comentario": "Modelo do arquivo lido por: manage.py importar_operacao <arquivo>. Copie, ajuste e salve como dados/<sua-loja>.json — arquivos .json desta pasta não são versionados, exceto este exemplo. Valores monetários em texto, com ponto decimal.",
+
+  "loja": {
+    "nome": "Nome da Loja",
+    "telefone": "(11) 90000-0000",
+    "cidade": "São Paulo",
+    "uf": "SP"
+  },
+
+  "usuario": {
+    "nome": "Nome do Dono",
+    "email": "dono@exemplo.com",
+    "senha": "TrocarNoPrimeiroAcesso1"
+  },
+
+  "configuracao": {
+    "permitir_fiado": true,
+    "prazo_fiado_dias": 30
+  },
+
+  "fornecedores": ["Fornecedor principal"],
+
+  "clientes": [
+    { "nome": "Cliente Exemplo", "telefone": "(11) 91111-2222" }
+  ],
+
+  "produtos": [
+    {
+      "nome": "Modelo do Produto",
+      "marca": "Marca",
+      "categoria": "Descartáveis",
+      "tipo": "descartavel",
+      "variacoes": [
+        {
+          "sabor": "Sabor",
+          "preco_venda": "150.00",
+          "preco_custo": "78.00",
+          "estoque_minimo": 1,
+          "_nota": "preco_custo aqui é só o ponto de partida: ele é recalculado pelo custo médio a cada compra recebida."
+        }
+      ]
+    }
+  ],
+
+  "compras": [
+    {
+      "data": "2026-09-07",
+      "fornecedor": "Fornecedor principal",
+      "documento": "NF 001",
+      "vencimento": null,
+      "frete": "0.00",
+      "observacoes": "Preencher vencimento gera a conta a pagar automaticamente.",
+      "itens": [
+        { "produto": "Modelo do Produto", "sabor": "Sabor", "quantidade": 2, "custo_unitario": "78.00" }
+      ]
+    }
+  ],
+
+  "vendas": [
+    {
+      "data": "2026-09-08",
+      "forma_pagamento": "pix",
+      "cliente": null,
+      "desconto": "0.00",
+      "observacoes": "formas aceitas: dinheiro, pix, debito, credito, fiado",
+      "itens": [
+        { "produto": "Modelo do Produto", "sabor": "Sabor", "quantidade": 1, "preco_unitario": "150.00" }
+      ]
+    }
+  ],
+
+  "conferencia": {
+    "_comentario": "Opcional. Se preenchido, a importação é recusada quando a soma dos lançamentos não bater — pega erro de digitação antes de gravar.",
+    "total_compras": "156.00",
+    "total_vendas": "150.00",
+    "unidades_em_estoque": "1"
+  }
+}

@@ -87,6 +87,14 @@ jobs:
         working-directory: frontend
         run: npx tsc -b
 
+      - name: Testes
+        working-directory: frontend
+        # Fuso do Brasil: os testes de data provam que data pura não
+        # escorrega para o dia anterior em fuso negativo.
+        env:
+          TZ: America/Sao_Paulo
+        run: npm test
+
       - name: Build
         working-directory: frontend
         run: npm run build

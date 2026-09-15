@@ -3,6 +3,36 @@
 Todas as mudanças relevantes deste projeto são registradas aqui.
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
+## [1.1.0] — 2026-09-15
+
+### Adicionado
+- Comando `importar_operacao`: traz para o sistema o catálogo, as compras e as
+  vendas que a loja já tinha antes de começar a usá-lo. Processa os eventos em
+  ordem cronológica pelos serviços de domínio, abre e fecha um caixa por dia de
+  venda, e confere os totais informados antes de gravar. O arquivo de dados
+  fica fora do repositório (`dados/`), com o formato em `dados/EXEMPLO.json`.
+- Prazo de vencimento configurável para a venda fiada
+  (`ConfiguracaoLoja.prazo_fiado_dias`, padrão 30 dias).
+- Testes de frontend com vitest, cobrindo formatação de dinheiro e de datas.
+- Paginação em todas as listagens — antes só os primeiros 50 registros eram
+  alcançáveis pela tela.
+
+### Corrigido
+- **Datas apareciam um dia antes.** `new Date('2026-09-08')` é interpretado
+  como meia-noite UTC, que no horário de Brasília cai no dia 07 — todo
+  vencimento, data de compra e rótulo de gráfico exibia o dia anterior.
+  `dataISO` tinha o problema espelhado: à noite, gerava o filtro do dia
+  seguinte.
+- **Cabeçalhos de segurança ausentes na página do sistema.** No Nginx, um
+  `add_header` em nível de `location` descarta os herdados do `server`; como a
+  SPA é servida por um location que define Cache-Control, ela ia sem HSTS nem
+  X-Frame-Options. Só a API vinha protegida.
+- Venda fiada nascia com vencimento no mesmo dia, marcando toda venda a prazo
+  como atrasada já no dia seguinte.
+- PDV no celular mostrava o carrinho acima da busca, empurrando o campo para
+  fora da tela; o carrinho virou barra fixa no rodapé.
+- Eixo dos gráficos truncava valores acima de cinco dígitos.
+
 ## [1.0.0] — 2026-09-15
 
 Primeira versão em produção: https://vape.2-24-122-160.sslip.io

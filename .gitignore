@@ -44,3 +44,7 @@ backups/
 # ---------- Produção ----------
 deploy/env/
 !deploy/env/*.example
+
+# ---------- Dados comerciais da loja (nunca versionar) ----------
+dados/*.json
+!dados/EXEMPLO.json

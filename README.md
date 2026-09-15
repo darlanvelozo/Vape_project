@@ -17,7 +17,7 @@ dados.
 |---|---|
 | **Sistema** | https://vape.2-24-122-160.sslip.io |
 | **API (docs)** | https://vape.2-24-122-160.sslip.io/api/docs/ |
-| **Demonstração** | `demo@vapeproject.app` · senha `Demo@2026` |
+| **Lojas ativas** | `luxury_vapes` (operação real) e uma loja de demonstração |
 
 > O endereço usa [sslip.io](https://sslip.io) porque ainda não há domínio
 > próprio (CONTEXT.md §5.7). Trocar por um domínio é mudar o `server_name` no
@@ -64,9 +64,10 @@ cd frontend && npm run dev                           # terminal 2
 - API: http://localhost:8000/api/docs/
 
 ```bash
-cd backend && .venv/bin/python -m pytest tests/ -q   # testes
+cd backend && .venv/bin/python -m pytest tests/ -q   # testes do backend
 cd backend && .venv/bin/ruff check .                 # lint
 cd frontend && npx tsc -b                            # tipos
+cd frontend && npm test                              # testes do frontend
 ```
 
 ## Produção
@@ -78,6 +79,21 @@ Documentação completa em [docs/OPERACAO.md](docs/OPERACAO.md).
 ./scripts/backup.sh        # backup manual (o diário roda às 03h15 por cron)
 ./scripts/restaurar.sh <arquivo.sql.gz>
 ```
+
+### Importar a operação de uma loja
+
+Para colocar no sistema o que a loja já tinha antes (catálogo, compras e
+vendas passadas), há um importador que aplica tudo pelos serviços de domínio
+— saldo, custo médio, caixa e financeiro saem consistentes:
+
+```bash
+cd backend
+.venv/bin/python manage.py importar_operacao ../dados/minha-loja.json --conferir  # só valida
+.venv/bin/python manage.py importar_operacao ../dados/minha-loja.json
+```
+
+O formato está em [dados/EXEMPLO.json](dados/EXEMPLO.json). Arquivos dessa
+pasta **não são versionados** — contêm dados comerciais da loja.
 
 ## Estrutura
 
@@ -92,6 +108,7 @@ vape-project/
 │   └── src/          lib (api, auth, formato), componentes, paginas
 ├── deploy/           nginx, systemd, env de produção (fora do git)
 ├── docs/             roadmap, operação e ADRs
+├── dados/            arquivos de importação (fora do git, exceto o exemplo)
 ├── scripts/          setup-dev, deploy, backup, restaurar
 ├── CLAUDE.md         instruções para o Claude Code
 ├── CONTEXT.md        documento mestre do projeto

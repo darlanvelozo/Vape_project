@@ -3,8 +3,8 @@
 > **Documento mestre.** Toda implementação deve começar pela leitura deste
 > arquivo. Para Claude Code, ler também [CLAUDE.md](CLAUDE.md).
 >
-> Última atualização: **2026-09-15** · Versão atual: **1.0.0** ·
-> **Em produção.**
+> Última atualização: **2026-09-15** · Versão atual: **1.1.0** ·
+> **Em produção, com operação real.**
 
 ---
 
@@ -21,14 +21,14 @@ Cada loja se cadastra sozinha e enxerga apenas os próprios dados.
 
 | Item | Situação |
 |---|---|
-| Versão | 1.0.0, em produção desde 15/09/2026 |
+| Versão | 1.1.0, em produção desde 15/09/2026 |
 | Endereço | https://vape.2-24-122-160.sslip.io |
 | Backend | Django 5.1 + DRF, gunicorn em `127.0.0.1:8002` via systemd |
 | Frontend | React 18 + Vite, compilado em `frontend/dist`, servido pelo Nginx |
 | Banco | PostgreSQL 16 local, base `vape_prod` |
-| Testes | 114 testes (pytest), CI no GitHub Actions |
+| Testes | 130 testes (pytest) + 12 (vitest), CI no GitHub Actions |
 | Backup | Diário às 03h15, retenção de 14 dias, restauração testada |
-| Demonstração | `demo@vapeproject.app` / `Demo@2026` |
+| Lojas | `luxury_vapes` (operação real, desde 15/09/2026) e uma loja de demonstração |
 
 ## 3. Domínio implementado
 
@@ -71,8 +71,10 @@ Cada loja se cadastra sozinha e enxerga apenas os próprios dados.
 
 1. **Domínio próprio** — quando houver, a migração está descrita em
    [docs/OPERACAO.md §5](docs/OPERACAO.md); leva minutos.
-2. **Importação de dados existentes** — há planilha ou sistema anterior com
-   produtos, estoque e clientes para importar? Não há importador ainda.
+2. **Importação de dados existentes** — resolvido para o histórico de
+   compras e vendas pelo comando `importar_operacao` (formato em
+   `dados/EXEMPLO.json`). Falta um importador de planilha para catálogos
+   grandes, se houver.
 3. **Cobrança do SaaS** — hoje `Loja.plano` e os limites existem no modelo,
    mas não há faturamento. Definir se e como cobrar.
 

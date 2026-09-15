@@ -40,26 +40,48 @@ export function paraCentavos(texto: string): number {
   return Math.round(numero * 100)
 }
 
+/** Só data, sem hora: "2026-09-15". */
+const SO_DATA = /^\d{4}-\d{2}-\d{2}$/
+
+/**
+ * Converte o texto vindo da API em Date.
+ *
+ * `new Date('2026-09-15')` é interpretado como **meia-noite UTC**, que no
+ * horário de Brasília (UTC−3) cai em 14/09 às 21h — e a tela mostraria o dia
+ * anterior em todo vencimento, data de compra e rótulo de gráfico. Datas sem
+ * hora são montadas como locais para evitar isso; timestamps completos já
+ * trazem o fuso e passam direto.
+ */
+function paraData(iso: string): Date | null {
+  const data = SO_DATA.test(iso) ? new Date(`${iso}T00:00:00`) : new Date(iso)
+  return Number.isNaN(data.getTime()) ? null : data
+}
+
 export function formatarData(iso: string | null | undefined): string {
   if (!iso) return '—'
-  const data = new Date(iso)
-  if (Number.isNaN(data.getTime())) return '—'
-  return data.toLocaleDateString('pt-BR')
+  return paraData(iso)?.toLocaleDateString('pt-BR') ?? '—'
 }
 
 export function formatarDataHora(iso: string | null | undefined): string {
   if (!iso) return '—'
-  const data = new Date(iso)
-  if (Number.isNaN(data.getTime())) return '—'
-  return data.toLocaleString('pt-BR', {
-    day: '2-digit', month: '2-digit', year: 'numeric',
-    hour: '2-digit', minute: '2-digit',
-  })
+  return (
+    paraData(iso)?.toLocaleString('pt-BR', {
+      day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit',
+    }) ?? '—'
+  )
 }
 
-/** "2026-09-15" — formato que a API espera em filtros de data. */
+/**
+ * "2026-09-15" — formato que a API espera em filtros de data.
+ *
+ * Montado a partir dos componentes locais: `toISOString()` converte para UTC
+ * e, à noite no Brasil, devolveria o dia seguinte.
+ */
 export function dataISO(data: Date): string {
-  return data.toISOString().slice(0, 10)
+  const mes = String(data.getMonth() + 1).padStart(2, '0')
+  const dia = String(data.getDate()).padStart(2, '0')
+  return `${data.getFullYear()}-${mes}-${dia}`
 }
 
 export function diasAtras(dias: number): string {
