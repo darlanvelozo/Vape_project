@@ -13,6 +13,7 @@ import {
   formatarDataHora,
   formatarMoeda,
   formatarTelefone,
+  numeroWhatsApp,
   paraCentavos,
 } from '../formato'
 
@@ -109,5 +110,22 @@ describe('zero negativo', () => {
     expect(moeda(Math.abs(-0))).toBe('R$ 0,00')
     expect(Object.is(-0, 0)).toBe(false)
     expect(-0 < 0).toBe(false)
+  })
+})
+
+describe('numeroWhatsApp', () => {
+  it('acrescenta o 55 ao número com DDD', () => {
+    expect(numeroWhatsApp('11999998888')).toBe('5511999998888')
+    expect(numeroWhatsApp('(98) 99999-8888')).toBe('5598999998888')
+  })
+  it('não duplica o 55 de quem digitou com o código do país', () => {
+    expect(numeroWhatsApp('+55 11 99999-8888')).toBe('5511999998888')
+    expect(numeroWhatsApp('5598999998888')).toBe('5598999998888')
+  })
+  it('fixo de 10 dígitos com DDD 55 (RS) não é confundido com código do país', () => {
+    expect(numeroWhatsApp('5533334444')).toBe('555533334444')
+  })
+  it('vazio continua vazio', () => {
+    expect(numeroWhatsApp('')).toBe('')
   })
 })

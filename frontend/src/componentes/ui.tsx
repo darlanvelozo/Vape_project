@@ -231,13 +231,19 @@ export function Modal({
     <Dialog.Root open={aberto} onOpenChange={(estado) => !estado && aoFechar()}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm" />
+        {/* No celular a janela é uma folha que sobe de baixo, na largura toda
+            (o polegar alcança e o teclado não a esconde); no desktop, centrada.
+            Os botões `.acoes-modal` ficam presos no rodapé (index.css). */}
         <Dialog.Content
           className={clsx(
-            'fixed left-1/2 top-1/2 z-50 max-h-[92vh] w-[calc(100vw-2rem)] -translate-x-1/2',
-            '-translate-y-1/2 overflow-y-auto rounded-xl bg-white p-5 shadow-xl',
+            'fixed inset-x-0 bottom-0 z-50 max-h-[90dvh] w-full overflow-y-auto rounded-t-2xl bg-white p-5',
+            'pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))] shadow-xl',
+            'sm:inset-x-auto sm:bottom-auto sm:left-1/2 sm:top-1/2 sm:max-h-[92vh] sm:w-[calc(100vw-2rem)]',
+            'sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-xl sm:pb-5',
             largura,
           )}
         >
+          <div aria-hidden className="mx-auto -mt-2 mb-3 h-1.5 w-10 rounded-full bg-slate-200 sm:hidden" />
           <div className="mb-4 flex items-start justify-between gap-4">
             <div>
               <Dialog.Title className="text-lg font-semibold text-slate-900">{titulo}</Dialog.Title>
@@ -247,7 +253,7 @@ export function Modal({
                 </Dialog.Description>
               )}
             </div>
-            <Dialog.Close className="rounded-lg p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600">
+            <Dialog.Close className="-m-2 rounded-lg p-2.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600">
               <X size={18} />
               <span className="sr-only">Fechar</span>
             </Dialog.Close>

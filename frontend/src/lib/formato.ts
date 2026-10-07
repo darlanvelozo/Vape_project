@@ -105,3 +105,14 @@ export function formatarTelefone(texto: string): string {
   }
   return digitos.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3').replace(/-$/, '')
 }
+
+/**
+ * Número para o link `wa.me`: só dígitos, com o 55 do Brasil uma vez só.
+ * O lojista digita "11 99999-8888" ou "+55 11 99999-8888"; os dois têm de
+ * virar 5511999998888 — com 55 duplicado o pedido da vitrine não chega.
+ */
+export function numeroWhatsApp(numero: string): string {
+  const digitos = numero.replace(/\D/g, '')
+  if (!digitos) return ''
+  return digitos.length >= 12 && digitos.startsWith('55') ? digitos : `55${digitos}`
+}

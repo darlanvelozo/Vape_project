@@ -405,7 +405,7 @@ function ModalMovimento({ operacao, aoFechar }: { operacao: Operacao; aoFechar: 
 
         {erro && <Alerta>{erro}</Alerta>}
 
-        <div className="flex gap-2 pt-1">
+        <div className="acoes-modal flex gap-2 pt-1">
           <Botao type="button" variante="secundario" className="flex-1" onClick={aoFechar}>
             Cancelar
           </Botao>

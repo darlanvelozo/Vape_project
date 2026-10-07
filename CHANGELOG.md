@@ -3,6 +3,25 @@
 Todas as mudanças relevantes deste projeto são registradas aqui.
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
+## [1.5.2] — 2026-10-07
+
+Segunda rodada do celular: operações percorridas como o lojista (venda no PDV,
+estoque, produto, caixa, cliente, financeiro) e a vitrine como o cliente.
+
+### Melhorado
+- **Janelas viram folha que sobe de baixo no celular**, na largura toda; no
+  desktop seguem centradas. Em "Novo produto", "Editar produto" e "Novo
+  cliente" o **Salvar ficava abaixo da tela** — agora os botões de ação ficam
+  presos no rodapé enquanto o formulário rola. O "X" de fechar passou de
+  ~26 px para 44 px.
+- PDV: a faixa do carrinho no celular diz "3 itens no carrinho · Ver ›".
+- Vitrine: botões Adicionar, mais/menos e fechar pedido com 44 px (eram 36–40).
+
+### Corrigido
+- **Link do WhatsApp da vitrine com 55 duplicado** quando o lojista salvava o
+  número com o código do país (wa.me/5555…): o pedido do cliente não chegava.
+  Regra em `numeroWhatsApp` (`lib/formato.ts`), com teste.
+
 ## [1.5.1] — 2026-10-07
 
 Inspeção do sistema inteiro no celular (iPhone 390 px e Android 360 px), tela

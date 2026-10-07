@@ -397,12 +397,17 @@ export function PDV() {
         {carrinho.length > 0 && (
           <button
             onClick={() => setResumoMovelAberto(true)}
-            className="mb-2 flex w-full items-center justify-between text-sm"
+            className="mb-2 flex min-h-[44px] w-full items-center justify-between rounded-lg bg-slate-50 px-3 text-sm"
           >
-            <span className="text-slate-600">
-              {carrinho.reduce((soma, item) => soma + item.quantidade, 0)} item(ns) — ver detalhes
-            </span>
-            <span className="text-marca-700">abrir</span>
+            {(() => {
+              const unidades = carrinho.reduce((soma, item) => soma + item.quantidade, 0)
+              return (
+                <span className="font-medium text-slate-700">
+                  {unidades} {unidades === 1 ? 'item' : 'itens'} no carrinho
+                </span>
+              )
+            })()}
+            <span className="font-semibold text-marca-700">Ver ›</span>
           </button>
         )}
         <div className="flex items-center gap-3">

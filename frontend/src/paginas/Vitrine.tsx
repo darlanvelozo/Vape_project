@@ -20,7 +20,7 @@ import { useParams } from 'react-router-dom'
 
 import { Carregando } from '../componentes/ui'
 import { api } from '../lib/api'
-import { formatarMoeda } from '../lib/formato'
+import { formatarMoeda, numeroWhatsApp } from '../lib/formato'
 
 type Disponibilidade = 'ultima_unidade' | 'poucas_unidades' | 'disponivel'
 
@@ -298,7 +298,7 @@ export function Vitrine() {
                         {noCarrinho === 0 ? (
                           <button
                             onClick={() => alterar(dados, 1)}
-                            className="shrink-0 rounded-xl bg-marca-700 px-4 py-2.5 text-sm font-semibold
+                            className="min-h-[44px] shrink-0 rounded-xl bg-marca-700 px-4 py-2.5 text-sm font-semibold
                                        text-white transition active:bg-marca-800"
                           >
                             Adicionar
@@ -308,7 +308,7 @@ export function Vitrine() {
                             <button
                               onClick={() => alterar(dados, -1)}
                               aria-label={`Menos um ${opcao.sabor}`}
-                              className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-200 active:bg-white/10"
+                              className="flex h-11 w-11 items-center justify-center rounded-lg text-slate-200 active:bg-white/10"
                             >
                               <Minus size={16} />
                             </button>
@@ -317,7 +317,7 @@ export function Vitrine() {
                               onClick={() => alterar(dados, 1)}
                               disabled={noCarrinho >= maximo}
                               aria-label={`Mais um ${opcao.sabor}`}
-                              className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-200
+                              className="flex h-11 w-11 items-center justify-center rounded-lg text-slate-200
                                          transition active:bg-white/10 disabled:opacity-30"
                             >
                               <Plus size={16} />
@@ -439,7 +439,7 @@ function Pedido({
     )
   }, [itens, total, loja, mostrarPreco])
 
-  const link = `https://wa.me/55${whatsapp}?text=${encodeURIComponent(mensagem)}`
+  const link = `https://wa.me/${numeroWhatsApp(whatsapp)}?text=${encodeURIComponent(mensagem)}`
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col justify-end bg-slate-950/70 backdrop-blur-sm sm:items-center sm:justify-center">
@@ -456,7 +456,7 @@ function Pedido({
           <button
             onClick={aoFechar}
             aria-label="Fechar pedido"
-            className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-400 active:bg-white/10"
+            className="flex h-11 w-11 items-center justify-center rounded-lg text-slate-400 active:bg-white/10"
           >
             <X size={20} />
           </button>
@@ -478,7 +478,7 @@ function Pedido({
                 <button
                   onClick={() => aoAlterar(item, -1)}
                   aria-label="Diminuir"
-                  className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-200 active:bg-white/10"
+                  className="flex h-11 w-11 items-center justify-center rounded-lg text-slate-200 active:bg-white/10"
                 >
                   <Minus size={16} />
                 </button>
@@ -487,7 +487,7 @@ function Pedido({
                   onClick={() => aoAlterar(item, 1)}
                   disabled={item.quantidade >= item.maximo}
                   aria-label="Aumentar"
-                  className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-200
+                  className="flex h-11 w-11 items-center justify-center rounded-lg text-slate-200
                              transition active:bg-white/10 disabled:opacity-30"
                 >
                   <Plus size={16} />
