@@ -60,6 +60,9 @@ export function App() {
     <Suspense fallback={<Carregando />}>
       <Routes>
         <Route path="/entrar" element={<Navigate to="/" replace />} />
+        {/* Também com sessão: o lojista abre a própria vitrine pelo botão
+            "Abrir" das Configurações — sem esta rota, caía no Painel. */}
+        <Route path="/vitrine/:slug" element={<Vitrine />} />
         <Route element={<Layout />}>
           <Route index element={<Painel />} />
           <Route path="pdv" element={<PDV />} />

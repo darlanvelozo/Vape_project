@@ -35,12 +35,14 @@ export function Configuracoes() {
     <>
       <CabecalhoPagina titulo="Configurações" descricao={usuario?.loja.nome} />
 
-      <div className="mb-4 flex gap-1 overflow-x-auto border-b border-slate-200">
+      {/* No celular as abas quebram em duas linhas: com rolagem lateral,
+          "Equipe" e "Minha conta" (onde se troca a senha) ficavam escondidas. */}
+      <div className="mb-4 flex flex-wrap gap-x-1 border-b border-slate-200 sm:flex-nowrap sm:overflow-x-auto">
         {abas.map((item) => (
           <button
             key={item.chave}
             onClick={() => setAba(item.chave)}
-            className={`min-h-[44px] whitespace-nowrap px-4 text-sm font-medium transition ${
+            className={`min-h-[44px] whitespace-nowrap px-3 text-sm font-medium transition sm:px-4 ${
               aba === item.chave
                 ? 'border-b-2 border-marca-700 text-marca-800'
                 : 'text-slate-500 hover:text-slate-700'

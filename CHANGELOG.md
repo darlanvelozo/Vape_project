@@ -3,6 +3,17 @@
 Todas as mudanças relevantes deste projeto são registradas aqui.
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
+## [1.5.3] — 2026-10-07
+
+### Corrigido
+- **O lojista logado não conseguia abrir a própria vitrine.** A rota
+  `/vitrine/:slug` só existia para quem estava sem sessão; com sessão (o caso
+  do botão "Abrir" em Configurações → Vitrine pública) o endereço caía no
+  Painel. Achado ao gerar o guia em PDF da loja temospod.
+- **Configurações no celular:** as abas "Equipe" e "Minha conta" (onde se
+  troca a senha) ficavam escondidas à direita, sem indicação de rolagem.
+  Agora quebram em duas linhas.
+
 ## [1.5.2] — 2026-10-07
 
 Segunda rodada do celular: operações percorridas como o lojista (venda no PDV,
