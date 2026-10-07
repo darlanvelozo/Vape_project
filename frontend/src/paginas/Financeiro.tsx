@@ -152,7 +152,7 @@ export function Financeiro() {
               <button
                 key={valor}
                 onClick={() => setAba(valor)}
-                className={`min-h-[40px] rounded-md px-3 text-sm font-medium transition ${
+                className={`min-h-[44px] rounded-md px-3 text-sm font-medium transition ${
                   aba === valor ? 'bg-white text-marca-800 shadow-sm' : 'text-slate-600'
                 }`}
               >

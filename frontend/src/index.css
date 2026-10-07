@@ -59,7 +59,9 @@
 
 @layer components {
   .campo {
-    @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm
+    /* 16px no celular (abaixo disso o iOS dá zoom ao focar); 14px no desktop.
+       Precisa estar aqui: a regra de `@layer base` perde para esta camada. */
+    @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base sm:text-sm
            text-slate-800 shadow-sm transition
            placeholder:text-slate-400
            focus:border-marca-500 focus:outline-none focus:ring-2 focus:ring-marca-500/30
@@ -83,5 +85,99 @@
   }
   .tabela tbody tr:hover {
     @apply bg-slate-50/70;
+  }
+}
+
+/*
+ * Tabela em cartões no celular (ver TabelaEnvolvida em componentes/ui.tsx).
+ * Fora de camada de propósito: precisa vencer os utilitários das células
+ * (`px-3`, `text-right`, `whitespace-nowrap`).
+ */
+@media (max-width: 639px) {
+  .tabela-responsiva {
+    overflow-x: visible;
+  }
+  .tabela-responsiva .tabela,
+  .tabela-responsiva .tabela tbody {
+    display: block;
+    width: 100%;
+  }
+  /* Sem largura fixa: com margem lateral, 100% vazaria pela direita. */
+  .tabela-responsiva .tabela tr {
+    display: block;
+  }
+  .tabela-responsiva .tabela thead {
+    /* Some da tela, mas continua para leitor de tela. */
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  .tabela-responsiva .tabela tbody tr {
+    margin: 0.625rem 0.75rem;
+    padding: 0.75rem 0.875rem;
+    border: 1px solid theme('colors.slate.200');
+    border-radius: 0.75rem;
+    background: white;
+  }
+  .tabela-responsiva .tabela tbody tr:hover {
+    background: white;
+  }
+  /* Rótulo à esquerda; o conteúdo da célula (valor e eventual complemento)
+     empilhado à direita, em vez de espalhado na horizontal. */
+  .tabela-responsiva .tabela tbody td {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: 1rem;
+    align-items: baseline;
+    justify-items: end;
+    padding: 0.3rem 0;
+    border: 0;
+    text-align: right;
+    white-space: normal;
+    font-size: 0.9375rem;
+  }
+  .tabela-responsiva .tabela tbody td > * {
+    grid-column: 2;
+  }
+  .tabela-responsiva .tabela tbody td::before {
+    content: attr(data-rotulo);
+    grid-column: 1;
+    grid-row: 1 / span 4;
+    justify-self: start;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: theme('colors.slate.500');
+  }
+  /* Primeira coluna: título do cartão, sem rótulo. */
+  .tabela-responsiva .tabela tbody td:first-child {
+    display: block;
+    padding-bottom: 0.4rem;
+    text-align: left;
+    font-size: 1rem;
+    font-weight: 600;
+    color: theme('colors.slate.900');
+  }
+  .tabela-responsiva .tabela tbody td:first-child::before,
+  .tabela-responsiva .tabela tbody td[data-rotulo='']::before {
+    content: none;
+  }
+  /* Coluna sem título (ações): rodapé do cartão, alinhada à direita. */
+  .tabela-responsiva .tabela tbody td[data-rotulo='']:not(:first-child) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: flex-end;
+    margin-top: 0.25rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid theme('colors.slate.100');
+  }
+  /* Célula vazia não ocupa uma linha inteira do cartão. */
+  .tabela-responsiva .tabela tbody td:empty {
+    display: none;
   }
 }

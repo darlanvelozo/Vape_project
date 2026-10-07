@@ -127,37 +127,37 @@ export function Caixa() {
         </Cartao>
       ) : (
         <>
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <div className="cartao p-4">
+          <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+            <div className="cartao p-3 sm:p-4">
               <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
                 Dinheiro na gaveta
               </p>
-              <p className="numerico mt-1 text-2xl font-bold text-emerald-700">
+              <p className="numerico mt-1 text-lg font-bold sm:text-2xl text-emerald-700">
                 {formatarMoeda(atual.saldo_atual_centavos ?? 0)}
               </p>
             </div>
-            <div className="cartao p-4">
+            <div className="cartao p-3 sm:p-4">
               <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
                 Total vendido
               </p>
-              <p className="numerico mt-1 text-2xl font-bold text-slate-900">
+              <p className="numerico mt-1 text-lg font-bold sm:text-2xl text-slate-900">
                 {formatarMoeda(conferencia?.total_vendido_centavos ?? 0)}
               </p>
               <p className="text-xs text-slate-500">
                 {conferencia?.total_vendas ?? 0} venda(s) neste caixa
               </p>
             </div>
-            <div className="cartao p-4">
+            <div className="cartao p-3 sm:p-4">
               <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
                 Fundo de troco
               </p>
-              <p className="numerico mt-1 text-2xl font-bold text-slate-900">
+              <p className="numerico mt-1 text-lg font-bold sm:text-2xl text-slate-900">
                 {formatarMoeda(atual.caixa?.saldo_inicial_centavos ?? 0)}
               </p>
             </div>
-            <div className="cartao p-4">
+            <div className="cartao p-3 sm:p-4">
               <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Aberto em</p>
-              <p className="mt-1 text-base font-semibold text-slate-900">
+              <p className="mt-1 text-sm font-semibold text-slate-900 sm:text-base">
                 {formatarDataHora(atual.caixa?.aberto_em)}
               </p>
               <p className="text-xs text-slate-500">por {atual.caixa?.usuario_abertura_nome}</p>

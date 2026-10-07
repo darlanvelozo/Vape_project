@@ -187,7 +187,7 @@ export function PDV() {
                 adicionar(resultados[0])
               }
             }}
-            placeholder="Buscar por nome, sabor, SKU ou código de barras…"
+            placeholder="Buscar produto, sabor ou código…"
             className="campo py-3 pl-10 text-base"
             autoComplete="off"
           />
@@ -209,19 +209,28 @@ export function PDV() {
             {termo && <> para “{termo}”</>}.
           </div>
         ) : (
-          <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-2 gap-2 xl:grid-cols-3">
+            {/* No balcão o cliente pede pelo sabor: ele vem em destaque, o modelo
+                em cima e menor. Dois por linha no celular para ver mais itens. */}
             {resultados.map((variacao) => {
               const semEstoque = variacao.saldo <= 0
+              const nicotina = variacao.nicotina_mg ? `${Number(variacao.nicotina_mg)} mg` : ''
               return (
                 <button
                   key={variacao.id}
                   onClick={() => adicionar(variacao)}
-                  className="cartao flex flex-col gap-1 p-3 text-left transition hover:border-marca-400 hover:shadow-md"
+                  className={`cartao flex flex-col gap-0.5 p-3 text-left transition hover:border-marca-400 hover:shadow-md active:scale-[0.98] ${
+                    semEstoque ? 'opacity-60' : ''
+                  }`}
                 >
-                  <p className="line-clamp-2 text-sm font-medium text-slate-800">
-                    {variacao.descricao_completa}
+                  <p className="line-clamp-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    {variacao.produto_nome}
                   </p>
-                  <div className="mt-auto flex items-center justify-between gap-2 pt-1">
+                  <p className="line-clamp-2 text-[0.95rem] font-semibold leading-snug text-slate-900">
+                    {variacao.sabor || variacao.descricao_completa}
+                  </p>
+                  {nicotina && <p className="text-xs text-slate-500">{nicotina}</p>}
+                  <div className="mt-auto flex flex-wrap items-center justify-between gap-x-2 gap-y-1 pt-1.5">
                     <span className="numerico font-bold text-marca-800">
                       {formatarMoeda(variacao.preco_venda_centavos)}
                     </span>
@@ -425,7 +434,7 @@ export function PDV() {
               <div className="flex shrink-0 items-center gap-1">
                 <button
                   onClick={() => alterarQuantidade(item.variacao.id, -1)}
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 transition active:bg-slate-100"
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-slate-300 transition active:bg-slate-100"
                 >
                   <Minus size={13} />
                 </button>
@@ -434,7 +443,7 @@ export function PDV() {
                 </span>
                 <button
                   onClick={() => alterarQuantidade(item.variacao.id, 1)}
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 transition active:bg-slate-100"
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-slate-300 transition active:bg-slate-100"
                 >
                   <Plus size={13} />
                 </button>

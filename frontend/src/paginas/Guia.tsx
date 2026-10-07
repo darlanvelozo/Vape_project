@@ -107,9 +107,9 @@ const SECOES: Secao[] = [
 
         <Titulo>Seu primeiro dia</Titulo>
         <Passos itens={[
-          <>Confira o <Link to="/estoque" className="font-medium text-marca-700 hover:underline">Estoque</Link> — ele já veio carregado com o que você tem.</>,
-          <>Abra o <Link to="/caixa" className="font-medium text-marca-700 hover:underline">Caixa</Link>, informando o troco que está na gaveta.</>,
-          <>Venda no <Link to="/pdv" className="font-medium text-marca-700 hover:underline">PDV</Link> durante o dia.</>,
+          <>Confira o <Link to="/estoque" className="-my-2.5 inline-block py-2.5 font-medium text-marca-700 underline decoration-marca-300 underline-offset-2">Estoque</Link> — ele já veio carregado com o que você tem.</>,
+          <>Abra o <Link to="/caixa" className="-my-2.5 inline-block py-2.5 font-medium text-marca-700 underline decoration-marca-300 underline-offset-2">Caixa</Link>, informando o troco que está na gaveta.</>,
+          <>Venda no <Link to="/pdv" className="-my-2.5 inline-block py-2.5 font-medium text-marca-700 underline decoration-marca-300 underline-offset-2">PDV</Link> durante o dia.</>,
           <>No fim do expediente, volte ao Caixa, conte o dinheiro e feche.</>,
         ]} />
       </>
@@ -555,11 +555,11 @@ const SECOES: Secao[] = [
 
         <Titulo>Como ativar</Titulo>
         <Passos itens={[
-          <>Vá em <Link to="/configuracoes" className="font-medium text-marca-700 hover:underline">Configurações → Vitrine pública</Link>.</>,
+          <>Vá em <Link to="/configuracoes" className="-my-2.5 inline-block py-2.5 font-medium text-marca-700 underline decoration-marca-300 underline-offset-2">Configurações → Vitrine pública</Link>.</>,
           'Ligue a chave e copie o link que aparece.',
           <>Preencha o <Termo>WhatsApp</Termo> — sem ele o cliente monta o pedido mas não
             tem como enviar.</>,
-          <>Suba as fotos dos modelos em <Link to="/produtos" className="font-medium text-marca-700 hover:underline">Produtos</Link>: vitrine com foto vende bem mais que lista de nomes.</>,
+          <>Suba as fotos dos modelos em <Link to="/produtos" className="-my-2.5 inline-block py-2.5 font-medium text-marca-700 underline decoration-marca-300 underline-offset-2">Produtos</Link>: vitrine com foto vende bem mais que lista de nomes.</>,
         ]} />
         <Nota tom="atencao">
           É um catálogo informativo, não uma loja on-line: ninguém compra por ali. O link

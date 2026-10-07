@@ -110,12 +110,14 @@ export function Relatorios() {
       />
 
       <div className="mb-4 grid gap-2 sm:grid-cols-[1fr_auto_auto]">
-        <div className="flex flex-wrap gap-1.5">
+        {/* No celular as abas ficam numa faixa que rola de lado, em vez de
+            empilhar 3 linhas de botões antes do conteúdo. */}
+        <div className="-mx-4 flex gap-1.5 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
           {disponiveis.map((item) => (
             <button
               key={item.chave}
               onClick={() => setAtivo(item.chave)}
-              className={`min-h-[40px] rounded-lg px-3 text-sm font-medium transition ${
+              className={`min-h-[44px] shrink-0 whitespace-nowrap rounded-lg px-3 text-sm font-medium transition ${
                 ativo === item.chave
                   ? 'bg-marca-700 text-white shadow-sm'
                   : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50'
@@ -125,8 +127,10 @@ export function Relatorios() {
             </button>
           ))}
         </div>
-        <Campo type="date" value={inicio} onChange={(evento) => setInicio(evento.target.value)} />
-        <Campo type="date" value={fim} onChange={(evento) => setFim(evento.target.value)} />
+        <div className="grid grid-cols-2 gap-2 sm:contents">
+          <Campo type="date" aria-label="De" value={inicio} onChange={(evento) => setInicio(evento.target.value)} />
+          <Campo type="date" aria-label="Até" value={fim} onChange={(evento) => setFim(evento.target.value)} />
+        </div>
       </div>
 
       {carregando ? (

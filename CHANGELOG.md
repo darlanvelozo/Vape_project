@@ -3,6 +3,34 @@
 Todas as mudanças relevantes deste projeto são registradas aqui.
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
+## [1.5.1] — 2026-10-07
+
+Inspeção do sistema inteiro no celular (iPhone 390 px e Android 360 px), tela
+a tela e navegando pelas operações — a loja passa a ser gerida principalmente
+pelo telefone.
+
+### Melhorado
+- **Tabelas viram cartões no celular.** Vendas, Estoque, Clientes,
+  Fornecedores, Caixa e Relatórios tinham tabelas de 475 a 745 px numa tela de
+  360–390 px: cortadas à direita, com o nome do produto quebrado em 5 linhas.
+  Abaixo de 640 px cada linha vira um cartão "rótulo: valor" (a primeira coluna
+  é o título, as ações vão para o rodapé). Feito uma vez em `TabelaEnvolvida`
+  + CSS; no desktop nada muda.
+- **PDV:** o sabor em destaque (é o que o cliente pede), o modelo em cima e
+  menor, dois itens por linha no celular, item sem estoque apagado, busca com
+  texto que cabe.
+- **Caixa e Estoque:** números dois por linha e botões de ação dividindo a
+  linha por igual, em vez de quatro cartões empilhados e botão órfão.
+- **Relatórios:** as seis abas numa faixa que rola de lado, em vez de três
+  linhas de botões; datas lado a lado (também em Vendas).
+
+### Corrigido
+- Campos com 14 px no celular (o iPhone dava zoom ao tocar): a regra de 16 px
+  existia, mas a classe `.campo` a anulava. Afetava todas as telas.
+- Abas com 40 px de altura (Estoque, Financeiro, Relatórios), abaixo do mínimo
+  de 44 px; botões de quantidade do carrinho com 40 px de largura.
+- Links do Guia com 16 px de altura de toque.
+
 ## [1.5.0] — 2026-09-15
 
 ### Adicionado

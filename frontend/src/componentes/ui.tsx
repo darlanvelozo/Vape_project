@@ -3,6 +3,7 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import clsx from 'clsx'
 import { AlertCircle, Loader2, X } from 'lucide-react'
+import { useLayoutEffect, useRef } from 'react'
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from 'react'
 
 // ------------------------------------------------------------------ Botão
@@ -301,7 +302,11 @@ export function CabecalhoPagina({
         <h1 className="text-xl font-bold text-slate-900 sm:text-2xl">{titulo}</h1>
         {descricao && <p className="mt-0.5 text-sm text-slate-500">{descricao}</p>}
       </div>
-      {acoes && <div className="flex flex-wrap gap-2">{acoes}</div>}
+      {/* No celular os botões ocupam a linha inteira, divididos por igual —
+          sem botão órfão de tamanho diferente na segunda linha. */}
+      {acoes && (
+        <div className="flex w-full flex-wrap gap-2 sm:w-auto [&>*]:grow sm:[&>*]:grow-0">{acoes}</div>
+      )}
     </header>
   )
 }
@@ -339,9 +344,45 @@ export function BotaoIcone({
   )
 }
 
+/**
+ * Tabela que vira lista de cartões no celular.
+ *
+ * Abaixo de 640px uma tabela de 6 colunas não cabe: ou rola de lado (o
+ * lojista perde a coluna do valor) ou espreme o nome do produto em 5 linhas.
+ * Aqui cada célula ganha o título da sua coluna em `data-rotulo`, e o CSS
+ * (`.tabela-responsiva` em index.css) mostra cada linha como um cartão
+ * "rótulo: valor". A primeira coluna vira o título do cartão; a coluna sem
+ * título (ações) vai para o rodapé. No desktop a tabela segue igual.
+ */
 export function TabelaEnvolvida({ children }: { children: ReactNode }) {
-  /* Tabela larga rola sozinha; a página nunca rola na horizontal. */
-  return <div className="overflow-x-auto">{children}</div>
+  const ref = useRef<HTMLDivElement>(null)
+  useLayoutEffect(() => {
+    const raiz = ref.current
+    if (!raiz) return
+    const rotular = () => {
+      raiz.querySelectorAll('table').forEach((tabela) => {
+        const rotulos = Array.from(tabela.querySelectorAll('thead th')).map(
+          (th) => th.textContent?.trim() ?? '',
+        )
+        tabela.querySelectorAll('tbody tr').forEach((linha) => {
+          Array.from(linha.children).forEach((celula, indice) => {
+            const rotulo = rotulos[indice] ?? ''
+            if (celula.getAttribute('data-rotulo') !== rotulo) celula.setAttribute('data-rotulo', rotulo)
+          })
+        })
+      })
+    }
+    rotular()
+    // Linhas entram e saem com paginação, filtro e busca: rotula de novo.
+    const observador = new MutationObserver(rotular)
+    observador.observe(raiz, { childList: true, subtree: true })
+    return () => observador.disconnect()
+  }, [])
+  return (
+    <div ref={ref} className="tabela-responsiva overflow-x-auto">
+      {children}
+    </div>
+  )
 }
 
 /**

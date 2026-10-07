@@ -85,17 +85,17 @@ export function Estoque() {
         }
       />
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="cartao p-4">
+      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+        <div className="cartao p-3 sm:p-4">
           <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Unidades</p>
-          <p className="numerico mt-1 text-2xl font-bold text-slate-900">
+          <p className="numerico mt-1 text-lg font-bold sm:text-2xl text-slate-900">
             {formatarNumero(resumo?.unidades_em_estoque ?? 0)}
           </p>
           <p className="text-xs text-slate-500">{resumo?.variacoes_ativas ?? 0} variações ativas</p>
         </div>
-        <div className="cartao p-4">
+        <div className="cartao p-3 sm:p-4">
           <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Valor a custo</p>
-          <p className="numerico mt-1 text-2xl font-bold text-slate-900">
+          <p className="numerico mt-1 text-lg font-bold sm:text-2xl text-slate-900">
             {formatarMoeda(resumo?.valor_custo_centavos ?? 0)}
           </p>
           <p className="text-xs text-slate-500">
@@ -104,20 +104,20 @@ export function Estoque() {
         </div>
         <button
           onClick={() => { setAba('posicao'); setFiltro(filtro === 'minimo' ? '' : 'minimo') }}
-          className={`cartao p-4 text-left transition hover:shadow-md ${filtro === 'minimo' ? 'ring-2 ring-amber-400' : ''}`}
+          className={`cartao p-3 sm:p-4 text-left transition hover:shadow-md ${filtro === 'minimo' ? 'ring-2 ring-amber-400' : ''}`}
         >
           <p className="text-xs font-medium uppercase tracking-wide text-slate-500">No mínimo</p>
-          <p className="numerico mt-1 text-2xl font-bold text-amber-600">
+          <p className="numerico mt-1 text-lg font-bold sm:text-2xl text-amber-600">
             {formatarNumero(resumo?.abaixo_do_minimo ?? 0)}
           </p>
           <p className="text-xs text-slate-500">item(ns) para repor</p>
         </button>
         <button
           onClick={() => { setAba('posicao'); setFiltro(filtro === 'zerados' ? '' : 'zerados') }}
-          className={`cartao p-4 text-left transition hover:shadow-md ${filtro === 'zerados' ? 'ring-2 ring-rose-400' : ''}`}
+          className={`cartao p-3 sm:p-4 text-left transition hover:shadow-md ${filtro === 'zerados' ? 'ring-2 ring-rose-400' : ''}`}
         >
           <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Zerados</p>
-          <p className="numerico mt-1 text-2xl font-bold text-rose-600">
+          <p className="numerico mt-1 text-lg font-bold sm:text-2xl text-rose-600">
             {formatarNumero(resumo?.zerados ?? 0)}
           </p>
           <p className="text-xs text-slate-500">sem saldo</p>
@@ -130,7 +130,7 @@ export function Estoque() {
             <button
               key={valor}
               onClick={() => { setAba(valor); setPagina(1) }}
-              className={`min-h-[40px] rounded-md px-3 text-sm font-medium transition ${
+              className={`min-h-[44px] rounded-md px-3 text-sm font-medium transition ${
                 aba === valor ? 'bg-white text-marca-800 shadow-sm' : 'text-slate-600'
               }`}
             >

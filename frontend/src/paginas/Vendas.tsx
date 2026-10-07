@@ -45,8 +45,9 @@ export function Vendas() {
     <>
       <CabecalhoPagina titulo="Vendas" descricao="Tudo que foi vendido, com detalhe e estorno." />
 
-      <div className="mb-3 grid gap-2 sm:grid-cols-3">
+      <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
         <Selecao
+          className="col-span-2 sm:col-span-1"
           value={status}
           onChange={(evento) => { setStatus(evento.target.value); setPagina(1) }}
         >
