@@ -298,8 +298,26 @@ const SECOES: Secao[] = [
           <>Toque em <Termo>Novo produto</Termo> e informe nome, tipo, categoria e marca.</>,
           'Preencha a primeira variação com sabor, custo e preço de venda.',
           <>Depois, expanda o produto na lista e use <Termo>Adicionar variação</Termo> para
-            os outros sabores.</>,
+            os outros sabores. O sabor novo já vem com o preço do modelo.</>,
         ]} />
+
+        <Titulo>Mudar o preço de um modelo</Titulo>
+        <Paragrafo>
+          O preço é do modelo: o Ignite V55 custa o mesmo em qualquer sabor. Para mudar,
+          toque no lápis do <Termo>produto</Termo> e altere <Termo>Preço do modelo</Termo> —
+          custo, venda ou os dois. Ao salvar, vale para todos os sabores de uma vez, inclusive
+          os que estão em falta.
+        </Paragrafo>
+        <Paragrafo>
+          Editando um sabor pelo lápis da linha dele, a opção <Termo>Aplicar custo e preço de
+          venda aos sabores</Termo> já vem marcada: o preço novo também vai para todos.
+          Desmarque só quando aquele sabor tiver um preço diferente dos outros — uma exceção.
+          Quando o modelo tem exceção, a lista e o formulário mostram "varia por sabor".
+        </Paragrafo>
+        <Nota>
+          Vendas já feitas não mudam: o custo e o preço ficam gravados em cada venda no
+          momento em que ela acontece. O lucro do mês passado continua o mesmo.
+        </Nota>
 
         <Titulo>Foto do produto</Titulo>
         <Paragrafo>

@@ -3,7 +3,7 @@
 > **Documento mestre.** Toda implementação deve começar pela leitura deste
 > arquivo. Para Claude Code, ler também [CLAUDE.md](CLAUDE.md).
 >
-> Última atualização: **2026-09-15** · Versão atual: **1.5.0** ·
+> Última atualização: **2026-10-22** · Versão atual: **1.6.0** ·
 > **Em produção, com operação real.**
 
 ---
@@ -21,20 +21,20 @@ Cada loja se cadastra sozinha e enxerga apenas os próprios dados.
 
 | Item | Situação |
 |---|---|
-| Versão | 1.5.0, em produção desde 15/09/2026 |
+| Versão | 1.6.0 (22/10/2026); em produção desde 15/09/2026 |
 | Endereço | https://vape.2-24-122-160.sslip.io |
 | Backend | Django 5.1 + DRF, gunicorn em `127.0.0.1:8002` via systemd |
 | Frontend | React 18 + Vite, compilado em `frontend/dist`, servido pelo Nginx |
 | Banco | PostgreSQL 16 local, base `vape_prod` |
-| Testes | 197 testes (pytest) + 13 (vitest), CI no GitHub Actions |
+| Testes | 209 testes (pytest) + 24 (vitest), CI no GitHub Actions |
 | Backup | Diário às 03h15, retenção de 14 dias, restauração testada |
-| Lojas | `luxury_vapes` (operação real, desde 15/09/2026) e uma loja de demonstração |
+| Lojas | `luxury_vapes` (desde 15/09/2026), `vaporize` (Vaporize, desde 07/10/2026) e uma loja de demonstração |
 
 ## 3. Domínio implementado
 
 | Módulo | Conteúdo |
 |---|---|
-| **Produtos** | Produto, categoria, marca, **variações** (sabor, mg de nicotina, puffs, volume), SKU, código de barras, preço de custo e venda, margem |
+| **Produtos** | Produto, categoria, marca, **variações** (sabor, mg de nicotina, puffs, volume), SKU, código de barras, preço de custo e venda, margem; preço do modelo aplicado a todos os sabores de uma vez |
 | **Estoque** | Entrada, saída, perda, devolução, estorno, inventário por contagem; saldo por variação; custo médio ponderado; extrato auditável |
 | **Vendas (PDV)** | Venda de balcão, desconto, pagamento dividido (dinheiro, Pix, débito, crédito, fiado), troco, recibo não fiscal, cancelamento com estorno |
 | **Caixa** | Abertura com fundo de troco, sangria, suprimento, conferência por forma de pagamento, fechamento com apuração de diferença |

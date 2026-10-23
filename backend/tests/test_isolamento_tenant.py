@@ -132,6 +132,14 @@ class TestEscritaNaoVaza:
         dados_da_outra_loja["cliente"].refresh_from_db()
         assert dados_da_outra_loja["cliente"].nome == "Cliente B"
 
+    def test_nao_altera_preco_de_modelo_de_outra_loja(self, api_dono, dados_da_outra_loja):
+        variacao = dados_da_outra_loja["variacao"]
+        resposta = api_dono.post(f"/api/produtos/{variacao.produto_id}/precos/",
+                                 {"preco_venda_centavos": 1}, format="json")
+        assert resposta.status_code == 404
+        variacao.refresh_from_db()
+        assert variacao.preco_venda == Decimal("40.00")
+
     def test_nao_exclui_registro_de_outra_loja(self, api_dono, dados_da_outra_loja):
         alvo = dados_da_outra_loja["fornecedor"].id
         assert api_dono.delete(f"/api/fornecedores/{alvo}/").status_code == 404

@@ -3,7 +3,7 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import clsx from 'clsx'
 import { AlertCircle, Loader2, X } from 'lucide-react'
-import { useLayoutEffect, useRef } from 'react'
+import { useId, useLayoutEffect, useRef } from 'react'
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from 'react'
 
 // ------------------------------------------------------------------ Botão
@@ -72,7 +72,9 @@ interface CampoProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 export function Campo({ rotulo, erro, dica, className, id, ...resto }: CampoProps) {
-  const identificador = id ?? resto.name
+  // Sem id, o rótulo não se liga ao campo: tocar nele não foca e o leitor de tela não o anuncia.
+  const automatico = useId()
+  const identificador = id ?? resto.name ?? automatico
   return (
     <div className={className}>
       {rotulo && (
@@ -101,7 +103,9 @@ interface SelecaoProps extends SelectHTMLAttributes<HTMLSelectElement> {
 }
 
 export function Selecao({ rotulo, erro, className, children, id, ...resto }: SelecaoProps) {
-  const identificador = id ?? resto.name
+  // Sem id, o rótulo não se liga ao campo: tocar nele não foca e o leitor de tela não o anuncia.
+  const automatico = useId()
+  const identificador = id ?? resto.name ?? automatico
   return (
     <div className={className}>
       {rotulo && (

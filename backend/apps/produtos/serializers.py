@@ -97,6 +97,18 @@ class VariacaoResumoSerializer(serializers.ModelSerializer):
         ]
 
 
+class PrecosDoModeloSerializer(serializers.Serializer):
+    """Entrada de POST /api/produtos/{id}/precos — o que não vier fica como está."""
+
+    preco_custo_centavos = CentavosField(min_value=0, required=False)
+    preco_venda_centavos = CentavosField(min_value=0, required=False)
+
+    def validate(self, dados):
+        if not dados:
+            raise serializers.ValidationError("Informe o preço de custo, o de venda ou os dois.")
+        return dados
+
+
 class ProdutoSerializer(serializers.ModelSerializer):
     variacoes = VariacaoSerializer(many=True, required=False)
     categoria_nome = serializers.CharField(source="categoria.nome", read_only=True)

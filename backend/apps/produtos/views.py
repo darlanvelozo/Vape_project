@@ -13,10 +13,12 @@ from .models import Categoria, Marca, Produto, Variacao
 from .serializers import (
     CategoriaSerializer,
     MarcaSerializer,
+    PrecosDoModeloSerializer,
     ProdutoSerializer,
     VariacaoResumoSerializer,
     VariacaoSerializer,
 )
+from .servicos import aplicar_precos_ao_modelo
 
 
 class CategoriaViewSet(LojaViewSet):
@@ -114,6 +116,26 @@ class ProdutoViewSet(LojaViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save(produto=produto, loja=self.loja)
         return Response(serializer.data, status=201)
+
+    @extend_schema(request=PrecosDoModeloSerializer, responses=ProdutoSerializer)
+    @action(detail=True, methods=["post"], url_path="precos")
+    def precos(self, request, pk=None):
+        """
+        POST /api/produtos/{id}/precos — mesmo custo e/ou venda em todos os sabores.
+
+        Responde o produto atualizado e, em `variacoes_alteradas`, quantos
+        sabores mudaram de fato, para a tela confirmar o que aconteceu.
+        """
+        produto = self.get_object()
+        entrada = PrecosDoModeloSerializer(data=request.data)
+        entrada.is_valid(raise_exception=True)
+        alteradas = aplicar_precos_ao_modelo(
+            produto=produto,
+            preco_custo=entrada.validated_data.get("preco_custo_centavos"),
+            preco_venda=entrada.validated_data.get("preco_venda_centavos"),
+        )
+        produto = self.get_queryset().get(pk=produto.pk)
+        return Response({**self.get_serializer(produto).data, "variacoes_alteradas": alteradas})
 
 
 class VariacaoViewSet(LojaViewSet):

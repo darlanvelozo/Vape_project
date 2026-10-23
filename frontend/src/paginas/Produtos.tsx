@@ -12,6 +12,7 @@ import {
 } from '../componentes/ui'
 import { ErroApi, api, enviarArquivo, querystring } from '../lib/api'
 import { useAutenticacao } from '../lib/auth'
+import { centavosParaCampo, precoDoModelo } from '../lib/catalogo'
 import { formatarMoeda, paraCentavos } from '../lib/formato'
 import type { Categoria, Marca, Pagina, Produto, Variacao } from '../lib/tipos'
 
@@ -164,6 +165,11 @@ export function Produtos() {
                           {[produto.marca_nome, produto.categoria_nome].filter(Boolean).join(' · ') ||
                             'sem categoria'}{' '}
                           · {produto.variacoes.length} variação(ões)
+                          {precoDoModelo(produto.variacoes).venda !== null && (
+                            <> · <span className="numerico font-medium text-slate-700">
+                              {formatarMoeda(precoDoModelo(produto.variacoes).venda)}
+                            </span></>
+                          )}
                         </p>
                       </div>
 
@@ -333,8 +339,22 @@ function ModalProduto({
   const [precoVenda, setPrecoVenda] = useState('')
   const [precoCusto, setPrecoCusto] = useState('')
 
+  // Só na edição: o preço do modelo, aplicado a todos os sabores.
+  const comum = precoDoModelo(produto?.variacoes ?? [])
+  const precoInicial = { custo: centavosParaCampo(comum.custo), venda: centavosParaCampo(comum.venda) }
+  const [precoModelo, setPrecoModelo] = useState(precoInicial)
+  const totalSabores = produto?.variacoes.length ?? 0
+  const novosPrecos: Record<string, number> = {}
+  if (precoModelo.custo !== precoInicial.custo && precoModelo.custo !== '') {
+    novosPrecos.preco_custo_centavos = paraCentavos(precoModelo.custo)
+  }
+  if (precoModelo.venda !== precoInicial.venda && precoModelo.venda !== '') {
+    novosPrecos.preco_venda_centavos = paraCentavos(precoModelo.venda)
+  }
+  const mudaPreco = Object.keys(novosPrecos).length > 0
+
   const salvar = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       const corpo: Record<string, unknown> = {
         nome: dados.nome,
         descricao: dados.descricao,
@@ -343,7 +363,11 @@ function ModalProduto({
         marca: dados.marca ? Number(dados.marca) : null,
         ativo: dados.ativo,
       }
-      if (produto) return api.patch(`/produtos/${produto.id}/`, corpo)
+      if (produto) {
+        await api.patch(`/produtos/${produto.id}/`, corpo)
+        if (mudaPreco) await api.post(`/produtos/${produto.id}/precos/`, novosPrecos)
+        return
+      }
 
       corpo.variacoes = [
         {
@@ -420,6 +444,40 @@ function ModalProduto({
           onChange={(evento) => setDados({ ...dados, descricao: evento.target.value })}
           placeholder="Opcional"
         />
+
+        {produto && totalSabores > 0 && (
+          <fieldset className="rounded-lg border border-slate-200 p-3">
+            <legend className="px-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Preço do modelo
+            </legend>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Campo
+                rotulo="Preço de custo"
+                value={precoModelo.custo}
+                onChange={(evento) => setPrecoModelo({ ...precoModelo, custo: evento.target.value })}
+                placeholder={comum.custo === null ? 'varia por sabor' : '0,00'}
+                inputMode="decimal"
+              />
+              <Campo
+                rotulo="Preço de venda"
+                value={precoModelo.venda}
+                onChange={(evento) => setPrecoModelo({ ...precoModelo, venda: evento.target.value })}
+                placeholder={comum.venda === null ? 'varia por sabor' : '0,00'}
+                inputMode="decimal"
+              />
+            </div>
+            {mudaPreco ? (
+              <p className="mt-2 text-xs font-medium text-amber-700">
+                Ao salvar, o novo preço vale para {totalSabores === 1 ? 'o único sabor' : `os ${totalSabores} sabores`} de{' '}
+                {produto.nome}. Vendas já feitas não mudam.
+              </p>
+            ) : (
+              <p className="mt-2 text-xs text-slate-500">
+                Vale para todos os sabores. Para uma exceção, edite o sabor pelo lápis da linha dele.
+              </p>
+            )}
+          </fieldset>
+        )}
 
         {produto && <CampoImagem produto={produto} />}
 
@@ -579,20 +637,31 @@ function ModalVariacao({
 }) {
   const clienteQuery = useQueryClient()
   const [erro, setErro] = useState<ErroApi | null>(null)
+  // Sabor novo já nasce com o preço do modelo; no balcão, o preço é do modelo.
+  const comum = precoDoModelo(produto.variacoes)
+  const totalSabores = produto.variacoes.filter((outra) => outra.id !== variacao?.id).length + 1
+  const segueOModelo =
+    comum.custo !== null && comum.venda !== null &&
+    (!variacao ||
+      (variacao.preco_custo_centavos === comum.custo && variacao.preco_venda_centavos === comum.venda))
+  // Marcado por padrão, salvo quando este sabor já é uma exceção de preço (ou
+  // o modelo já tem preços variados) — editar o código de barras de uma
+  // exceção não deve espalhá-la pelo modelo.
+  const [aplicarATodos, setAplicarATodos] = useState(totalSabores > 1 && segueOModelo)
   const [dados, setDados] = useState({
     sabor: variacao?.sabor ?? '',
     nicotina_mg: variacao?.nicotina_mg ?? '',
     puffs: variacao?.puffs?.toString() ?? '',
     sku: variacao?.sku ?? '',
     codigo_barras: variacao?.codigo_barras ?? '',
-    custo: variacao ? (variacao.preco_custo_centavos / 100).toFixed(2).replace('.', ',') : '',
-    venda: variacao ? (variacao.preco_venda_centavos / 100).toFixed(2).replace('.', ',') : '',
+    custo: centavosParaCampo(variacao ? variacao.preco_custo_centavos : comum.custo),
+    venda: centavosParaCampo(variacao ? variacao.preco_venda_centavos : comum.venda),
     estoque_minimo: variacao?.estoque_minimo?.toString() ?? '0',
     ativo: variacao?.ativo ?? true,
   })
 
   const salvar = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       const corpo = {
         sabor: dados.sabor,
         nicotina_mg: dados.nicotina_mg === '' ? null : dados.nicotina_mg,
@@ -604,9 +673,15 @@ function ModalVariacao({
         estoque_minimo: Number(dados.estoque_minimo) || 0,
         ativo: dados.ativo,
       }
-      return variacao
+      await (variacao
         ? api.patch(`/variacoes/${variacao.id}/`, corpo)
-        : api.post(`/produtos/${produto.id}/variacoes/`, corpo)
+        : api.post(`/produtos/${produto.id}/variacoes/`, corpo))
+      if (aplicarATodos && totalSabores > 1) {
+        await api.post(`/produtos/${produto.id}/precos/`, {
+          preco_custo_centavos: corpo.preco_custo_centavos,
+          preco_venda_centavos: corpo.preco_venda_centavos,
+        })
+      }
     },
     onSuccess: () => {
       clienteQuery.invalidateQueries({ queryKey: ['produtos'] })
@@ -698,6 +773,23 @@ function ModalVariacao({
           />
           Variação ativa
         </label>
+
+        {totalSabores > 1 && (
+          <label className="flex min-h-[44px] cursor-pointer items-start gap-2 text-sm text-slate-700">
+            <input
+              type="checkbox"
+              checked={aplicarATodos}
+              onChange={(evento) => setAplicarATodos(evento.target.checked)}
+              className="mt-0.5 h-5 w-5 shrink-0 rounded border-slate-300"
+            />
+            <span>
+              Aplicar custo e preço de venda aos {totalSabores} sabores de {produto.nome}
+              <span className="block text-xs text-slate-500">
+                Desmarque só se este sabor tiver um preço diferente dos outros.
+              </span>
+            </span>
+          </label>
+        )}
 
         {variacao && (
           <p className="text-xs text-slate-500">

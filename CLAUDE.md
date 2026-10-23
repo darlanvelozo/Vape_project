@@ -16,14 +16,19 @@
 fornecedores, financeiro e relatórios). Várias lojas, de donos diferentes,
 na mesma instalação.
 
-- **Versão atual:** **1.5.0, em produção** desde 15/09/2026, com a loja
-  `luxury_vapes` operando com dados reais
+- **Versão atual:** **1.6.0, em produção** (22/10/2026). Lojas reais:
+  `luxury_vapes` (desde 15/09) e **Vaporize** (slug `vaporize`, antes
+  `temospod`; criada em 07/10, primeira venda em 22/10, dono + 2 vendedores —
+  no limite de 3 usuários do plano)
 - **Endereço:** https://vape.2-24-122-160.sslip.io (sslip.io — ainda sem
   domínio próprio)
 - **Bloco corrente:** Blocos 0 a 6 concluídos. O Bloco 7 (extras) está aberto
   e nada nele foi contratado — ver [docs/ROADMAP.md](docs/ROADMAP.md).
 - **Repositório:** https://github.com/darlanvelozo/Vape_project (público —
-  **nunca commitar secrets**; `.env` e `deploy/env/` estão no `.gitignore`)
+  **nunca commitar secrets**; `.env` e `deploy/env/` estão no `.gitignore`).
+  **Em 22/10/2026 o repositório no GitHub estava vazio** (nenhuma branch): o
+  código só existe nesta VPS, e os backups ficam no mesmo disco. Enviar o
+  código e copiar o backup para fora é a pendência mais séria.
 - **Operação:** [docs/OPERACAO.md](docs/OPERACAO.md) — deploy, backup,
   restauração, logs e migração para domínio próprio.
 - **Guia do lojista:** a página `/guia` documenta o produto para quem opera.

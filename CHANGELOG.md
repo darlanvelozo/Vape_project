@@ -3,6 +3,30 @@
 Todas as mudanças relevantes deste projeto são registradas aqui.
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
+## [1.6.0] — 2026-10-22
+
+### Adicionado
+- **Preço do modelo.** Em loja de vape o preço é do modelo, não do sabor, mas o
+  sistema só deixava mudar sabor a sabor — e num modelo com nove sabores é aí
+  que um fica esquecido com o preço velho. Agora:
+  - **Editar produto** tem a seção "Preço do modelo" (custo e venda): ao
+    salvar, o valor vai para todos os sabores, inclusive os inativos, e o
+    formulário diz antes quantos sabores serão alterados;
+  - **Editar variação** traz "Aplicar custo e preço de venda aos N sabores",
+    marcado por padrão — e desmarcado quando aquele sabor já é uma exceção de
+    preço, para não espalhar a exceção pelo modelo;
+  - **Adicionar variação** já abre com o preço do modelo preenchido;
+  - a lista de produtos mostra o preço ao lado do modelo.
+- `POST /api/produtos/{id}/precos/` (serviço `produtos.servicos.aplicar_precos_ao_modelo`):
+  salva variação por variação, só os campos de preço — o histórico de auditoria
+  registra cada mudança e o saldo não é tocado. Vendas já feitas mantêm o custo
+  congelado. Coberto por 13 testes, incluindo o de isolamento entre lojas.
+
+### Corrigido
+- **Rótulo de campo não ligado ao campo** em todo formulário que não passava
+  `name`: tocar no rótulo não focava o campo e o leitor de tela não o
+  anunciava. `Campo` e `Selecao` geram o identificador sozinhos (`useId`).
+
 ## [1.5.3] — 2026-10-07
 
 ### Corrigido
