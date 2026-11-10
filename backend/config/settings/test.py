@@ -23,7 +23,15 @@ REST_FRAMEWORK = {**REST_FRAMEWORK, "DEFAULT_THROTTLE_RATES": {  # noqa: F405
     "login": None,
     "cadastro": None,
     "vitrine": None,
+    "vitrine_pedido": None,
+    "vitrine_status": None,
+    "vitrine_consulta": None,
 }}
+
+# Comprovantes de teste não sujam a pasta real.
+import tempfile  # noqa: E402
+
+PRIVADO_ROOT = tempfile.mkdtemp(prefix="vape-privado-")
 
 PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
 

@@ -24,6 +24,14 @@ from apps.estoque.views import MovimentoEstoqueViewSet, PosicaoEstoqueViewSet
 from apps.financeiro.views import CategoriaFinanceiraViewSet, LancamentoViewSet
 from apps.fornecedores.views import CompraViewSet, FornecedorViewSet
 from apps.lojas.views import VitrinePublicaView
+from apps.pedidos.publico import (
+    CancelarPedidoPublicoView,
+    CriarPedidoPublicoView,
+    InformarPagamentoPublicoView,
+    MeusPedidosPublicoView,
+    PedidoPublicoView,
+)
+from apps.pedidos.views import PedidoOnlineViewSet
 from apps.produtos.views import CategoriaViewSet, MarcaViewSet, ProdutoViewSet, VariacaoViewSet
 from apps.relatorios.views import (
     CurvaABCView,
@@ -60,6 +68,7 @@ router.register("fornecedores", FornecedorViewSet, basename="fornecedor")
 router.register("compras", CompraViewSet, basename="compra")
 router.register("caixas", CaixaViewSet, basename="caixa")
 router.register("vendas", VendaViewSet, basename="venda")
+router.register("pedidos-online", PedidoOnlineViewSet, basename="pedido-online")
 router.register(
     "financeiro/categorias", CategoriaFinanceiraViewSet, basename="categoria-financeira"
 )
@@ -91,6 +100,17 @@ urlpatterns = [
 
     # Vitrine pública — único endpoint de domínio sem autenticação.
     path("api/vitrine/<slug:slug>/", VitrinePublicaView.as_view(), name="vitrine"),
+    # Pedido on-line (ADR-0004): também sem autenticação, pelo token do pedido.
+    path("api/vitrine/<slug:slug>/pedidos/", CriarPedidoPublicoView.as_view(),
+         name="vitrine-criar-pedido"),
+    path("api/vitrine/<slug:slug>/pedidos/<str:token>/", PedidoPublicoView.as_view(),
+         name="vitrine-pedido"),
+    path("api/vitrine/<slug:slug>/pedidos/<str:token>/pagamento/",
+         InformarPagamentoPublicoView.as_view(), name="vitrine-pedido-pagamento"),
+    path("api/vitrine/<slug:slug>/pedidos/<str:token>/cancelar/",
+         CancelarPedidoPublicoView.as_view(), name="vitrine-pedido-cancelar"),
+    path("api/vitrine/<slug:slug>/meus-pedidos/", MeusPedidosPublicoView.as_view(),
+         name="vitrine-meus-pedidos"),
 
     path("api/auth/", include((urlpatterns_autenticacao, "auth"))),
     path("api/relatorios/", include((urlpatterns_relatorios, "relatorios"))),

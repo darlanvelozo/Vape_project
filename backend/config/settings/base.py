@@ -57,6 +57,7 @@ APPS_LOCAIS = [
     "apps.vendas",
     "apps.financeiro",
     "apps.relatorios",
+    "apps.pedidos",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + TERCEIROS_APPS + APPS_LOCAIS
@@ -134,6 +135,9 @@ STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "static_collected"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+# Arquivos com dado pessoal (comprovante de Pix): fora de MEDIA_ROOT, que o
+# nginx serve sem login. Só saem pela API autenticada da própria loja.
+PRIVADO_ROOT = env.path("PRIVADO_ROOT", default=BASE_DIR / "privado")
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
     "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
@@ -166,6 +170,12 @@ REST_FRAMEWORK = {
         # Vitrine é pública: teto generoso para o cliente navegar, baixo
         # o bastante para não servir de raspagem de catálogo.
         "vitrine": env("THROTTLE_VITRINE", default="120/hour"),
+        # Criar pedido e enviar comprovante: o cliente faz isso poucas vezes.
+        "vitrine_pedido": env("THROTTLE_VITRINE_PEDIDO", default="20/hour"),
+        # Página do pedido consulta o status a cada 15 s enquanto aberta.
+        "vitrine_status": env("THROTTLE_VITRINE_STATUS", default="600/hour"),
+        # Consulta por telefone: baixo, para não servir de varredura de números.
+        "vitrine_consulta": env("THROTTLE_VITRINE_CONSULTA", default="15/hour"),
     },
     "EXCEPTION_HANDLER": "apps.core.exceptions.tratador_de_excecao",
 }

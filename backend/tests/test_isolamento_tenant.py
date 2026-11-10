@@ -5,14 +5,17 @@ Este arquivo é a rede de segurança do SaaS: se um `get_queryset()` esquecer o
 recorte por loja, um teste daqui quebra. **Todo endpoint novo entra aqui.**
 """
 
+from datetime import timedelta
 from decimal import Decimal
 
 import pytest
+from django.utils import timezone
 from rest_framework.test import APIClient
 
 from apps.clientes.models import Cliente
 from apps.financeiro.models import Lancamento, TipoLancamento
 from apps.fornecedores.models import Fornecedor
+from apps.pedidos.models import PedidoOnline
 from apps.produtos.models import Categoria, Marca
 from apps.usuarios.models import Papel, Usuario
 
@@ -25,7 +28,12 @@ def dados_da_outra_loja(outra_loja):
     from tests.conftest_helpers import criar_variacao_zerada
 
     variacao = criar_variacao_zerada(outra_loja, nome="Produto Secreto B")
+    pedido = PedidoOnline.objects.create(
+        loja=outra_loja, codigo="BBBBBB", telefone="86999990000", codinome="Cliente B",
+        total=Decimal("40.00"), expira_em=timezone.now() + timedelta(minutes=30),
+    )
     return {
+        "pedido_online": pedido,
         "categoria": Categoria.objects.create(loja=outra_loja, nome="Categoria B"),
         "marca": Marca.objects.create(loja=outra_loja, nome="Marca B"),
         "produto": variacao.produto,
@@ -54,6 +62,8 @@ ENDPOINTS_DE_LISTAGEM = [
     "/api/financeiro/lancamentos/",
     "/api/financeiro/categorias/",
     "/api/usuarios/",
+    "/api/pedidos-online/",
+    "/api/pedidos-online/?entregas=1",
 ]
 
 
@@ -87,6 +97,27 @@ class TestDetalhesNaoVazam:
     def test_variacao_de_outra_loja_da_404(self, api_dono, dados_da_outra_loja):
         alvo = dados_da_outra_loja["variacao"].id
         assert api_dono.get(f"/api/variacoes/{alvo}/").status_code == 404
+
+
+    def test_pedido_online_de_outra_loja_da_404(self, api_dono, dados_da_outra_loja):
+        pedido = dados_da_outra_loja["pedido_online"]
+        assert api_dono.get(f"/api/pedidos-online/{pedido.pk}/").status_code == 404
+        assert api_dono.post(f"/api/pedidos-online/{pedido.pk}/aprovar/").status_code == 404
+        assert api_dono.post(f"/api/pedidos-online/{pedido.pk}/cancelar/").status_code == 404
+        assert api_dono.get(f"/api/pedidos-online/{pedido.pk}/comprovante/").status_code == 404
+
+    def test_resumo_de_pedidos_conta_so_a_propria_loja(self, api_dono, dados_da_outra_loja):
+        corpo = api_dono.get("/api/pedidos-online/resumo/").json()
+        assert corpo["aguardando_pagamento"] == 0
+
+    def test_token_de_pedido_nao_abre_pela_vitrine_de_outra_loja(
+        self, loja, dados_da_outra_loja
+    ):
+        loja.configuracao.vitrine_publica = True
+        loja.configuracao.save()
+        token = dados_da_outra_loja["pedido_online"].token
+        resposta = APIClient().get(f"/api/vitrine/{loja.slug}/pedidos/{token}/")
+        assert resposta.status_code == 404
 
 
 class TestEscritaNaoVaza:
@@ -310,7 +341,8 @@ class TestArquitetura:
 
         faltando = []
         for app in ("usuarios", "produtos", "estoque", "clientes",
-                    "fornecedores", "vendas", "financeiro", "relatorios"):
+                    "fornecedores", "vendas", "financeiro", "relatorios",
+                    "pedidos"):
             modulo = importlib.import_module(f"apps.{app}.views")
             for nome in dir(modulo):
                 classe = getattr(modulo, nome)

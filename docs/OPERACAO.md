@@ -15,7 +15,8 @@ Escrito para quem vai manter este sistema no ar — inclusive o próximo Claude.
 | Certificado | `/etc/letsencrypt/live/vape.2-24-122-160.sslip.io/` |
 | Banco | PostgreSQL 16 local, base `vape_prod`, usuário `vape` |
 | Cache | Redis local, **banco 3** (o 0 e o 1 são de outros sistemas da VPS) |
-| Backups | `/opt/vape-backups`, diários às 03h15, retenção de 14 dias |
+| Backups | `/opt/vape-backups`, diários às 03h15, retenção de 14 dias (só o banco) |
+| Comprovantes de Pix | `/opt/vape-project/backend/privado/` — **fora** de `media/`, que o nginx serve sem login. Só saem pela API autenticada da loja (ADR-0004) |
 | Frontend compilado | `/opt/vape-project/frontend/dist` |
 
 Esta VPS hospeda outros três sistemas. As escolhas de porta (8002), banco

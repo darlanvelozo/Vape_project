@@ -132,6 +132,31 @@ class ConfiguracaoLoja(TimestampedModel):
         help_text="Só dígitos com DDD. Vazio esconde o botão de contato.",
     )
 
+    # ---------- Venda on-line (ADR-0004) ----------
+    # Pix estático com a chave da própria loja e conferência humana: sem
+    # gateway, sem segredo de terceiro.
+    venda_online = models.BooleanField(
+        "venda on-line com Pix",
+        default=False,
+        help_text="O cliente finaliza o pedido na vitrine e paga com Pix.",
+    )
+    pix_chave = models.CharField("chave Pix", max_length=80, blank=True)
+    pix_nome = models.CharField(
+        "nome do recebedor", max_length=25, blank=True,
+        help_text="Como aparece no app do banco. Até 25 letras, sem acento.",
+    )
+    pix_cidade = models.CharField("cidade do recebedor", max_length=15, blank=True)
+    reserva_minutos = models.PositiveIntegerField(
+        "reserva do pedido (minutos)", default=30,
+        help_text="Quanto tempo o pedido segura o estoque esperando o Pix.",
+    )
+    aceita_entrega = models.BooleanField("faz entrega", default=True)
+    aceita_retirada = models.BooleanField("aceita retirada", default=True)
+    texto_retirada = models.CharField(
+        "instruções de retirada", max_length=200, blank=True,
+        help_text="Onde e quando buscar. Aparece para o cliente que escolhe retirada.",
+    )
+
     class Meta:
         verbose_name = "configuração da loja"
         verbose_name_plural = "configurações das lojas"

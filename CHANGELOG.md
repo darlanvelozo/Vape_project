@@ -3,6 +3,41 @@
 Todas as mudanças relevantes deste projeto são registradas aqui.
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
+## [1.7.0] — 2026-11-09
+
+### Adicionado
+- **Venda on-line pela vitrine com Pix** ([ADR-0004](docs/adr/ADR-0004-venda-online-pix-estatico.md)).
+  O cliente da Vaporize pediu o QR Code de recebimento e a opção de retirada;
+  agora o cliente compra sozinho:
+  - **checkout** na vitrine: telefone, codinome, entrega ou retirada,
+    localização pelo GPS do celular com ponto de referência (ou endereço
+    escrito) e declaração de maioridade obrigatória;
+  - **Pix estático** (BR Code do Banco Central) gerado com a chave da própria
+    loja e o valor exato, com o código do pedido no identificador — QR Code e
+    copia e cola. Sem gateway, sem segredo de terceiro;
+  - **reserva de estoque** por prazo configurável (padrão 30 min) sem escrever
+    em `Variacao.saldo`: o disponível é saldo − reservas, calculado com as
+    linhas travadas. A vitrine já esconde o que está todo reservado;
+  - **página do pedido** (pública pelo token): pagamento com contagem
+    regressiva, envio do comprovante, linha do tempo do pedido, previsão de
+    entrega, recado da loja e, depois de pago, o **comprovante de compra**;
+  - **Meus pedidos**: o cliente acha os pedidos pelo telefone (POST, para o
+    número não ir para a URL; resposta enxuta; limite por IP baixo);
+  - **painel "Pedidos on-line"** com contador no menu: conferir o Pix (vira
+    venda Pix pelos mesmos serviços do PDV, sem exigir caixa aberto), status
+    preparando → saiu para entrega / pronto para retirada → entregue, previsão
+    e recado, aviso ao cliente pelo WhatsApp com o link do comprovante, e
+    **rota de entrega** no Google Maps com as paradas na ordem do pagamento;
+  - configuração em **Configurações → Vitrine pública → Venda on-line com Pix**;
+  - seção "Pedidos on-line (Pix)" no Guia de uso.
+- Comprovante do Pix guardado **fora de `media/`** (`PRIVADO_ROOT`) e servido só
+  ao painel autenticado da loja.
+- `finalizar_venda(..., exigir_caixa=False)` para venda que não passa pelo
+  balcão; dinheiro sem caixa aberto continua recusado.
+- 53 testes novos (Pix com o vetor do Banco Central, disputa da última
+  unidade, expiração, aprovação, entrega, cancelamento com estorno, isolamento
+  entre lojas) e 7 no frontend (rota no Maps e linha do tempo).
+
 ## [1.6.0] — 2026-10-22
 
 ### Adicionado

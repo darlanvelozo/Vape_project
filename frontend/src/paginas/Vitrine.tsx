@@ -6,21 +6,29 @@
  * a página ser leve (não carrega nada do sistema interno), com alvos grandes
  * e leitura em coluna única.
  *
- * O pedido **não** é uma venda: o cliente monta o carrinho e a mensagem sai
- * pronta no WhatsApp da loja, onde a reserva é combinada. Nada é debitado do
- * estoque aqui — o item só sai quando alguém vender no PDV.
+ * Duas formas de pedir:
+ * - **Compra com Pix** (loja com venda on-line ligada, ADR-0004): o cliente
+ *   finaliza aqui, o pedido reserva o estoque por alguns minutos e a página
+ *   do pedido mostra o QR Code. A venda só nasce quando a loja confere o Pix.
+ * - **Reserva pelo WhatsApp**: a mensagem sai pronta para a conversa, e nada
+ *   é debitado do estoque.
  */
 
 import { useQuery } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
 import {
-  AlertCircle, ImageOff, Minus, MessageCircle, Plus, Search, ShoppingBag, Store, X,
+  AlertCircle, ImageOff, Minus, MessageCircle, Plus, Receipt, Search, ShoppingBag, Store, X,
 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { Carregando } from '../componentes/ui'
 import { api } from '../lib/api'
 import { formatarMoeda, numeroWhatsApp } from '../lib/formato'
+import { lembrarPedido } from '../lib/pedidos'
+import type { PedidoPublico } from '../lib/pedidos'
+import { Checkout } from './VitrineCheckout'
+import type { ConfigVendaOnline } from './VitrineCheckout'
 
 type Disponibilidade = 'ultima_unidade' | 'poucas_unidades' | 'disponivel'
 
@@ -50,6 +58,7 @@ interface Vitrine {
   produtos: ProdutoVitrine[]
   total_itens: number
   aviso_idade: string
+  venda_online: ConfigVendaOnline | null
 }
 
 interface ItemCarrinho {
@@ -92,6 +101,8 @@ export function Vitrine() {
   const [busca, setBusca] = useState('')
   const [carrinho, setCarrinho] = useState<ItemCarrinho[]>([])
   const [carrinhoAberto, setCarrinhoAberto] = useState(false)
+  const navegar = useNavigate()
+  const clienteQuery = useQueryClient()
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['vitrine', slug],
@@ -210,10 +221,20 @@ export function Vitrine() {
               ].filter(Boolean).join(' · ')}
             </p>
           )}
-          <p className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-medium">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-            {data.total_itens} {data.total_itens === 1 ? 'item disponível' : 'itens disponíveis'}
-          </p>
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <p className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-medium">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+              {data.total_itens} {data.total_itens === 1 ? 'item disponível' : 'itens disponíveis'}
+            </p>
+            {data.venda_online && (
+              <Link
+                to={`/vitrine/${slug}/meus-pedidos`}
+                className="inline-flex min-h-[32px] items-center gap-1.5 rounded-full border border-white/15 px-3 text-xs font-medium text-slate-200"
+              >
+                <Receipt size={13} /> Meus pedidos
+              </Link>
+            )}
+          </div>
         </div>
       </header>
 
@@ -336,9 +357,19 @@ export function Vitrine() {
         <div className="mt-8 flex items-start gap-2 rounded-xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-xs text-amber-200">
           <AlertCircle size={15} className="mt-0.5 shrink-0" />
           <p>
-            {data.aviso_idade} Catálogo informativo, sujeito a alteração de disponibilidade
-            sem aviso. O pedido feito aqui é uma <strong>solicitação de reserva</strong> —
-            só é confirmado na conversa com a loja.
+            {data.aviso_idade}{' '}
+            {data.venda_online ? (
+              <>
+                A compra é confirmada quando a loja confere o Pix. Disponibilidade sujeita a
+                alteração sem aviso.
+              </>
+            ) : (
+              <>
+                Catálogo informativo, sujeito a alteração de disponibilidade sem aviso. O pedido
+                feito aqui é uma <strong>solicitação de reserva</strong> — só é confirmado na
+                conversa com a loja.
+              </>
+            )}
           </p>
         </div>
       </main>
@@ -373,6 +404,15 @@ export function Vitrine() {
           loja={data.loja.nome}
           whatsapp={whatsapp}
           mostrarPreco={data.mostrar_preco}
+          slug={slug}
+          vendaOnline={data.venda_online}
+          aoConcluir={(pedido) => {
+            lembrarPedido(slug, pedido.token)
+            setCarrinho([])
+            setCarrinhoAberto(false)
+            clienteQuery.invalidateQueries({ queryKey: ['vitrine', slug] })
+            navegar(`/vitrine/${slug}/pedido/${pedido.token}`)
+          }}
           aoFechar={() => setCarrinhoAberto(false)}
           aoAlterar={alterar}
           aoLimpar={() => {
@@ -413,13 +453,17 @@ function Foto({ url, alt }: { url: string | null; alt: string }) {
  * precisar abrir o sistema.
  */
 function Pedido({
-  itens, total, loja, whatsapp, mostrarPreco, aoFechar, aoAlterar, aoLimpar,
+  itens, total, loja, whatsapp, mostrarPreco, slug, vendaOnline, aoConcluir, aoFechar, aoAlterar,
+  aoLimpar,
 }: {
   itens: ItemCarrinho[]
   total: number
   loja: string
   whatsapp: string
   mostrarPreco: boolean
+  slug: string
+  vendaOnline: ConfigVendaOnline | null
+  aoConcluir: (pedido: PedidoPublico) => void
   aoFechar: () => void
   aoAlterar: (item: Omit<ItemCarrinho, 'quantidade'>, delta: number) => void
   aoLimpar: () => void
@@ -440,6 +484,7 @@ function Pedido({
   }, [itens, total, loja, mostrarPreco])
 
   const link = `https://wa.me/${numeroWhatsApp(whatsapp)}?text=${encodeURIComponent(mensagem)}`
+  const [finalizando, setFinalizando] = useState(false)
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col justify-end bg-slate-950/70 backdrop-blur-sm sm:items-center sm:justify-center">
@@ -452,7 +497,9 @@ function Pedido({
                       bg-slate-900 sm:max-w-lg sm:rounded-2xl">
         <header className="sticky top-0 flex items-center justify-between gap-3 border-b border-white/10
                            bg-slate-900 px-4 py-3">
-          <h2 className="text-lg font-semibold text-slate-100">Seu pedido</h2>
+          <h2 className="text-lg font-semibold text-slate-100">
+            {finalizando ? 'Finalizar compra' : 'Seu pedido'}
+          </h2>
           <button
             onClick={aoFechar}
             aria-label="Fechar pedido"
@@ -462,6 +509,17 @@ function Pedido({
           </button>
         </header>
 
+        {finalizando && vendaOnline ? (
+          <Checkout
+            slug={slug}
+            itens={itens}
+            totalCentavos={total}
+            config={vendaOnline}
+            aoVoltar={() => setFinalizando(false)}
+            aoConcluir={aoConcluir}
+          />
+        ) : (
+        <>
         <ul className="divide-y divide-white/5">
           {itens.map((item) => (
             <li key={item.opcaoId} className="flex items-center gap-3 px-4 py-3">
@@ -507,27 +565,45 @@ function Pedido({
             </div>
           )}
 
+          {vendaOnline && (
+            <button
+              onClick={() => setFinalizando(true)}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-4
+                         text-base font-semibold text-white transition active:bg-emerald-700"
+            >
+              <ShoppingBag size={19} />
+              Finalizar compra com Pix
+            </button>
+          )}
+
           {whatsapp ? (
             <a
               href={link}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-4
-                         text-base font-semibold text-white transition active:bg-emerald-700"
+              className={
+                vendaOnline
+                  ? `flex min-h-[48px] items-center justify-center gap-2 rounded-xl border border-emerald-500/30
+                     px-4 text-sm font-semibold text-emerald-200`
+                  : `flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-4
+                     text-base font-semibold text-white transition active:bg-emerald-700`
+              }
             >
               <MessageCircle size={19} />
-              Reservar no WhatsApp
+              {vendaOnline ? 'Prefiro combinar no WhatsApp' : 'Reservar no WhatsApp'}
             </a>
-          ) : (
+          ) : !vendaOnline && (
             <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
               A loja ainda não cadastrou um WhatsApp de contato. Anote seu pedido e fale
               com a loja pelos canais de sempre.
             </div>
           )}
 
-          <p className="text-center text-xs text-slate-500">
-            A reserva é confirmada na conversa. Nada é cobrado por esta página.
-          </p>
+          {!vendaOnline && (
+            <p className="text-center text-xs text-slate-500">
+              A reserva é confirmada na conversa. Nada é cobrado por esta página.
+            </p>
+          )}
 
           <button
             onClick={aoLimpar}
@@ -536,6 +612,8 @@ function Pedido({
             Limpar pedido
           </button>
         </div>
+        </>
+        )}
       </div>
     </div>
   )

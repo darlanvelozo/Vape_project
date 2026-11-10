@@ -19,6 +19,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.core.utils import para_centavos
+from apps.pedidos.servicos import reservas_ativas
 from apps.produtos.models import Variacao
 
 from .models import Loja
@@ -55,17 +56,23 @@ class VitrinePublicaView(APIView):
         if loja is None or configuracao is None or not configuracao.vitrine_publica:
             raise NotFound("Vitrine não encontrada.")
 
-        variacoes = (
+        variacoes = list(
             Variacao.objects.filter(
                 loja=loja, ativo=True, produto__ativo=True, saldo__gt=0
             )
             .select_related("produto", "produto__marca", "produto__categoria")
             .order_by("produto__nome", "sabor")
         )
+        # Unidades seguras por pedido on-line esperando Pix (ADR-0004) não
+        # estão à venda: some da vitrine quem já está todo reservado.
+        reservado = reservas_ativas(loja, [v.pk for v in variacoes])
 
         # Agrupa por produto para a tela montar um card por modelo.
         produtos: dict[int, dict] = {}
         for variacao in variacoes:
+            disponivel = variacao.saldo - reservado.get(variacao.pk, 0)
+            if disponivel <= 0:
+                continue
             produto = produtos.setdefault(
                 variacao.produto_id,
                 {
@@ -92,7 +99,7 @@ class VitrinePublicaView(APIView):
                     if variacao.nicotina_mg is not None else None
                 ),
                 "puffs": variacao.puffs,
-                "disponibilidade": _disponibilidade(variacao.saldo),
+                "disponibilidade": _disponibilidade(disponivel),
             }
             if configuracao.vitrine_mostrar_preco:
                 opcao["preco_centavos"] = para_centavos(variacao.preco_venda)
@@ -110,4 +117,18 @@ class VitrinePublicaView(APIView):
             "produtos": list(produtos.values()),
             "total_itens": sum(len(p["opcoes"]) for p in produtos.values()),
             "aviso_idade": "Venda proibida para menores de 18 anos.",
+            "venda_online": _venda_online(configuracao),
         })
+
+
+def _venda_online(configuracao) -> dict | None:
+    """O que a vitrine precisa saber para oferecer o checkout com Pix."""
+    if not (configuracao.venda_online and configuracao.pix_chave
+            and configuracao.vitrine_mostrar_preco):
+        return None
+    return {
+        "aceita_entrega": configuracao.aceita_entrega,
+        "aceita_retirada": configuracao.aceita_retirada,
+        "texto_retirada": configuracao.texto_retirada,
+        "reserva_minutos": configuracao.reserva_minutos,
+    }

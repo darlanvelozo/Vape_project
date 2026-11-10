@@ -242,13 +242,18 @@ def _recalcular_totais(venda: Venda) -> Venda:
 
 
 @transaction.atomic
-def finalizar_venda(*, venda: Venda, usuario, pagamentos) -> Venda:
+def finalizar_venda(*, venda: Venda, usuario, pagamentos, exigir_caixa: bool = True) -> Venda:
     """
     Fecha a venda: baixa estoque, registra pagamentos, movimenta caixa e
     gera a conta a receber do fiado.
 
     `pagamentos` é uma lista de dicts `{forma, valor, observacao?}` — venda
     dividida entre dinheiro e cartão é rotina no balcão.
+
+    `exigir_caixa=False` é para a venda que não passa pelo balcão (pedido
+    on-line pago em Pix, ADR-0004): Pix não entra na gaveta, então não há
+    motivo para recusá-la de madrugada com o caixa fechado. Se houver caixa
+    aberto, a venda é vinculada a ele mesmo assim, para o resumo do turno.
     """
     from apps.lojas.models import ConfiguracaoLoja
 
@@ -267,7 +272,7 @@ def finalizar_venda(*, venda: Venda, usuario, pagamentos) -> Venda:
     _recalcular_totais(venda)
 
     caixa = caixa_aberto(venda.loja)
-    if caixa is None:
+    if caixa is None and exigir_caixa:
         raise CaixaFechado(
             "Não há caixa aberto. Abra o caixa para registrar vendas.", campo="caixa"
         )
@@ -335,6 +340,10 @@ def finalizar_venda(*, venda: Venda, usuario, pagamentos) -> Venda:
 
     # --- caixa (somente espécie, líquido do troco) ---
     dinheiro_liquido = quantizar(total_em_dinheiro - troco)
+    if dinheiro_liquido > 0 and caixa is None:
+        raise CaixaFechado(
+            "Pagamento em dinheiro exige caixa aberto.", campo="caixa"
+        )
     if dinheiro_liquido > 0:
         MovimentoCaixa.objects.create(
             loja=venda.loja, caixa=caixa, tipo=TipoMovimentoCaixa.VENDA,

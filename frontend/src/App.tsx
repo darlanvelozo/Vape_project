@@ -33,6 +33,16 @@ const Configuracoes = lazy(() =>
   import('./paginas/Configuracoes').then((m) => ({ default: m.Configuracoes })),
 )
 const Guia = lazy(() => import('./paginas/Guia').then((m) => ({ default: m.Guia })))
+const PedidosOnline = lazy(() =>
+  import('./paginas/PedidosOnline').then((m) => ({ default: m.PedidosOnline })),
+)
+// Página do pedido do cliente: carrega à parte porque traz o gerador de QR Code.
+const PedidoVitrine = lazy(() =>
+  import('./paginas/PedidoVitrine').then((m) => ({ default: m.PedidoVitrine })),
+)
+const MeusPedidosVitrine = lazy(() =>
+  import('./paginas/PedidoVitrine').then((m) => ({ default: m.MeusPedidosVitrine })),
+)
 
 export function App() {
   const { usuario, carregando, podeGerenciar } = useAutenticacao()
@@ -47,12 +57,16 @@ export function App() {
 
   if (!usuario) {
     return (
+      <Suspense fallback={<Carregando />}>
       <Routes>
         {/* A vitrine é pública: responde igual com ou sem sessão. */}
         <Route path="/vitrine/:slug" element={<Vitrine />} />
+        <Route path="/vitrine/:slug/pedido/:token" element={<PedidoVitrine />} />
+        <Route path="/vitrine/:slug/meus-pedidos" element={<MeusPedidosVitrine />} />
         <Route path="/entrar" element={<Entrar />} />
         <Route path="*" element={<Navigate to="/entrar" replace />} />
       </Routes>
+      </Suspense>
     )
   }
 
@@ -63,11 +77,14 @@ export function App() {
         {/* Também com sessão: o lojista abre a própria vitrine pelo botão
             "Abrir" das Configurações — sem esta rota, caía no Painel. */}
         <Route path="/vitrine/:slug" element={<Vitrine />} />
+        <Route path="/vitrine/:slug/pedido/:token" element={<PedidoVitrine />} />
+        <Route path="/vitrine/:slug/meus-pedidos" element={<MeusPedidosVitrine />} />
         <Route element={<Layout />}>
           <Route index element={<Painel />} />
           <Route path="pdv" element={<PDV />} />
           <Route path="caixa" element={<Caixa />} />
           <Route path="vendas" element={<Vendas />} />
+          <Route path="pedidos" element={<PedidosOnline />} />
           <Route path="produtos" element={<Produtos />} />
           <Route path="estoque" element={<Estoque />} />
           <Route path="clientes" element={<Clientes />} />

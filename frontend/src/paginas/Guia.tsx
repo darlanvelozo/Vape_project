@@ -7,7 +7,7 @@
 
 import {
   BarChart3, Boxes, ChevronRight, LayoutDashboard, Lightbulb, Package,
-  Receipt, Settings, ShoppingCart, Store, Truck, Users, Wallet,
+  Receipt, Settings, ShoppingBag, ShoppingCart, Store, Truck, Users, Wallet,
 } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
@@ -557,14 +557,14 @@ const SECOES: Secao[] = [
         </Paragrafo>
         <Titulo>Como o cliente faz um pedido</Titulo>
         <Paragrafo>
-          Ele monta o carrinho na vitrine e toca em <Termo>Reservar no WhatsApp</Termo>. A
-          conversa abre no seu WhatsApp com a lista pronta: itens, quantidades e total.
-          A partir daí é você quem combina a reserva.
+          Ele monta o carrinho na vitrine. Com a <Termo>venda on-line</Termo> ligada, toca em
+          <Termo> Finalizar compra com Pix</Termo> e paga ali mesmo — veja a seção "Pedidos
+          on-line". Sem ela, toca em <Termo>Reservar no WhatsApp</Termo>: a conversa abre com
+          a lista pronta e você combina a reserva.
         </Paragrafo>
         <Nota tom="atencao">
-          O pedido da vitrine <Termo>não</Termo> baixa estoque nem registra venda. Ele é um
-          recado. A venda só existe quando alguém a registra no PDV — assim o estoque nunca
-          cai por uma reserva que não se confirmou.
+          A reserva pelo WhatsApp <Termo>não</Termo> baixa estoque nem registra venda. Ela é
+          um recado: a venda só existe quando alguém a registra no PDV.
         </Nota>
         <Paragrafo>
           A quantidade que o cliente pode pedir respeita o que você tem: item marcado como
@@ -580,9 +580,80 @@ const SECOES: Secao[] = [
           <>Suba as fotos dos modelos em <Link to="/produtos" className="-my-2.5 inline-block py-2.5 font-medium text-marca-700 underline decoration-marca-300 underline-offset-2">Produtos</Link>: vitrine com foto vende bem mais que lista de nomes.</>,
         ]} />
         <Nota tom="atencao">
-          É um catálogo informativo, não uma loja on-line: ninguém compra por ali. O link
-          é público — quem tiver o endereço abre, ainda que a página não apareça em
+          O link é público — quem tiver o endereço abre, ainda que a página não apareça em
           buscadores.
+        </Nota>
+      </>
+    ),
+  },
+
+  // ----------------------------------------------------------------
+  {
+    id: 'pedidos-online',
+    titulo: 'Pedidos on-line (Pix)',
+    icone: ShoppingBag,
+    conteudo: (
+      <>
+        <Paragrafo>
+          Com a venda on-line ligada, o cliente compra sozinho pela vitrine e paga com Pix
+          direto na <Termo>sua chave</Termo> — sem maquininha, sem intermediário, sem taxa.
+          Você só confere se o dinheiro caiu, prepara e entrega.
+        </Paragrafo>
+
+        <Titulo>O que o cliente faz</Titulo>
+        <Passos itens={[
+          'Monta o carrinho e toca em "Finalizar compra com Pix".',
+          <>Informa <Termo>telefone</Termo> e um <Termo>nome ou codinome</Termo>, escolhe
+            entrega ou retirada e declara ter 18 anos ou mais.</>,
+          <>Na entrega, toca em <Termo>Usar minha localização</Termo> (o GPS do celular) e
+            escreve um ponto de referência. Se o GPS falhar, digita o endereço.</>,
+          <>Recebe o <Termo>QR Code</Termo> e o <Termo>Pix copia e cola</Termo> com o valor
+            exato. Os itens ficam reservados enquanto ele paga (30 minutos, por padrão).</>,
+          'Paga no app do banco e toca em "Já paguei", de preferência anexando o print do comprovante.',
+          <>Acompanha tudo na página do pedido: pago, preparando, saiu para entrega,
+            entregue. Depois de aprovado, a página vira o <Termo>comprovante da compra</Termo>.</>,
+        ]} />
+        <Nota>
+          O cliente acha os pedidos dele a qualquer momento em <Termo>Meus pedidos</Termo>,
+          no topo da vitrine, informando o telefone usado na compra.
+        </Nota>
+
+        <Titulo>O que você faz</Titulo>
+        <Passos itens={[
+          <>Abra <Link to="/pedidos" className="-my-2.5 inline-block py-2.5 font-medium text-marca-700 underline decoration-marca-300 underline-offset-2">Pedidos on-line</Link>. O
+            número laranja no menu é quantos pedidos esperam conferência.</>,
+          <>Em <Termo>A conferir</Termo>, veja o comprovante e confira no app do banco se
+            caiu o Pix do valor. O código do pedido aparece na descrição do Pix na maioria dos
+            bancos.</>,
+          <>Toque em <Termo>Pix recebido</Termo>. Nesse momento o pedido vira venda paga em
+            Pix: o estoque baixa e a receita entra no financeiro — igual a uma venda do PDV.</>,
+          <>Em <Termo>Em andamento</Termo>, defina a <Termo>previsão de entrega</Termo>
+            (atalhos de +30 min, +1 h, +2 h), deixe um recado se quiser ("motoboy João, moto
+            vermelha") e mude o status: preparando → saiu para entrega (ou pronto para
+            retirada) → entregue.</>,
+          <>Toque em <Termo>Avisar cliente no WhatsApp</Termo>: a mensagem sai pronta com o
+            link do pedido, que é o comprovante dele.</>,
+          <>Em <Termo>Rota de entrega</Termo>, as entregas pagas aparecem na ordem do
+            pagamento. <Termo>Abrir rota no Maps</Termo> monta o trajeto com todas as paradas
+            no Google Maps do celular do entregador.</>,
+        ]} />
+
+        <Titulo>Como ativar</Titulo>
+        <Passos itens={[
+          <>Em <Link to="/configuracoes" className="-my-2.5 inline-block py-2.5 font-medium text-marca-700 underline decoration-marca-300 underline-offset-2">Configurações → Vitrine pública</Link>,
+            ligue a vitrine e deixe "Mostrar preços" marcado.</>,
+          <>No cartão <Termo>Venda on-line com Pix</Termo>, preencha a chave Pix, o nome do
+            recebedor e a cidade, escolha entrega e/ou retirada e salve.</>,
+          'Faça um pedido de teste de valor baixo e pague você mesmo, para ver o QR Code funcionando no seu banco.',
+        ]} />
+        <Nota tom="atencao">
+          O sistema <Termo>não sabe</Termo> se o dinheiro caiu — quem confirma é você. Nunca
+          aprove pelo print sozinho: print se falsifica. Confira no extrato do banco.
+        </Nota>
+        <Nota>
+          Pedido que não é pago no prazo vence e os itens voltam para a vitrine. Se o cliente
+          pagar depois disso, ele ainda consegue avisar pela página; você aprova se ainda tiver
+          o produto, ou cancela e devolve o Pix pelo banco.
         </Nota>
       </>
     ),

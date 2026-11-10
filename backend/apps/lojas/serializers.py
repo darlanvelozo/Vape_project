@@ -19,7 +19,49 @@ class ConfiguracaoLojaSerializer(serializers.ModelSerializer):
             "vitrine_mostrar_preco",
             "vitrine_mensagem",
             "vitrine_whatsapp",
+            "venda_online",
+            "pix_chave",
+            "pix_nome",
+            "pix_cidade",
+            "reserva_minutos",
+            "aceita_entrega",
+            "aceita_retirada",
+            "texto_retirada",
         ]
+
+    def validate_pix_chave(self, valor):
+        from apps.pedidos.pix import normalizar_chave
+
+        return normalizar_chave(valor)
+
+    def validate_reserva_minutos(self, valor):
+        if not 5 <= valor <= 24 * 60:
+            raise serializers.ValidationError("Use entre 5 minutos e 24 horas.")
+        return valor
+
+    def validate(self, dados):
+        atual = self.instance
+        def valor(campo):
+            return dados.get(campo, getattr(atual, campo, None))
+
+        if valor("venda_online"):
+            faltando = [rotulo for campo, rotulo in (
+                ("pix_chave", "chave Pix"), ("pix_nome", "nome do recebedor"),
+                ("pix_cidade", "cidade"),
+            ) if not valor(campo)]
+            if faltando:
+                raise serializers.ValidationError({
+                    "venda_online": [f"Para vender on-line, preencha: {', '.join(faltando)}."]
+                })
+            if not valor("aceita_entrega") and not valor("aceita_retirada"):
+                raise serializers.ValidationError({
+                    "venda_online": ["Escolha ao menos entrega ou retirada."]
+                })
+            if not valor("vitrine_publica"):
+                raise serializers.ValidationError({
+                    "venda_online": ["Ligue a vitrine pública antes da venda on-line."]
+                })
+        return dados
 
 
 class LojaSerializer(serializers.ModelSerializer):

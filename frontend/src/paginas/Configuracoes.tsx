@@ -412,14 +412,154 @@ function VitrinePublica({ podeEditar, slug }: { podeEditar: boolean; slug: strin
             </div>
           </Cartao>
 
+          <VendaOnline configuracao={configuracao} podeEditar={podeEditar} />
+
           <Alerta tipo="aviso">
-            A vitrine é um catálogo informativo, sem venda on-line, e traz o aviso de
-            idade mínima. Ela não é indexada por buscadores, mas o link é público:
-            quem tiver o endereço consegue abrir.
+            {configuracao.venda_online
+              ? 'Com a venda on-line ligada, o cliente paga com Pix direto na sua chave e você confere o pagamento em “Pedidos on-line”. '
+              : 'Sem a venda on-line, a vitrine é um catálogo informativo e o pedido vai para o WhatsApp. '}
+            A página traz o aviso de idade mínima e não é indexada por buscadores, mas o link é
+            público: quem tiver o endereço consegue abrir.
           </Alerta>
         </>
       )}
     </div>
+  )
+}
+
+/**
+ * Venda on-line com Pix estático (ADR-0004): o código Pix é montado com a
+ * chave da própria loja — sem gateway, sem taxa, sem terceiro.
+ */
+function VendaOnline({
+  configuracao, podeEditar,
+}: {
+  configuracao: ConfiguracaoLoja
+  podeEditar: boolean
+}) {
+  const clienteQuery = useQueryClient()
+  const { usuario, atualizarUsuario } = useAutenticacao()
+  const [form, setForm] = useState({
+    venda_online: configuracao.venda_online,
+    pix_chave: configuracao.pix_chave,
+    pix_nome: configuracao.pix_nome,
+    pix_cidade: configuracao.pix_cidade,
+    reserva_minutos: configuracao.reserva_minutos,
+    aceita_entrega: configuracao.aceita_entrega,
+    aceita_retirada: configuracao.aceita_retirada,
+    texto_retirada: configuracao.texto_retirada,
+  })
+  const [salvo, setSalvo] = useState(false)
+
+  const salvar = useMutation({
+    mutationFn: () => api.patch<ConfiguracaoLoja>('/loja/configuracao/', form),
+    onSuccess: (nova) => {
+      clienteQuery.setQueryData(['configuracao-loja'], nova)
+      // O menu "Pedidos on-line" depende desta configuração.
+      if (usuario) atualizarUsuario({ ...usuario, loja: { ...usuario.loja, configuracao: nova } })
+      setForm((atual) => ({ ...atual, pix_chave: nova.pix_chave }))
+      setSalvo(true)
+      setTimeout(() => setSalvo(false), 2500)
+    },
+  })
+  const erro = salvar.error instanceof ErroApi ? salvar.error : null
+
+  function campo<K extends keyof typeof form>(chave: K, valor: (typeof form)[K]) {
+    setForm((atual) => ({ ...atual, [chave]: valor }))
+  }
+
+  const caixa = (chave: 'venda_online' | 'aceita_entrega' | 'aceita_retirada', rotulo: string, dica: string) => (
+    <label className="flex cursor-pointer items-start justify-between gap-4 py-2">
+      <span>
+        <span className="block text-sm font-medium text-slate-800">{rotulo}</span>
+        <span className="mt-0.5 block text-xs text-slate-500">{dica}</span>
+      </span>
+      <input
+        type="checkbox"
+        disabled={!podeEditar}
+        checked={form[chave]}
+        onChange={(evento) => campo(chave, evento.target.checked)}
+        className="mt-1 h-5 w-5 shrink-0 rounded border-slate-300"
+      />
+    </label>
+  )
+
+  return (
+    <Cartao titulo="Venda on-line com Pix">
+      <div className="space-y-3">
+        {caixa(
+          'venda_online',
+          'Cliente compra pela vitrine',
+          'O cliente finaliza o pedido, paga com Pix (QR Code ou copia e cola) e acompanha a entrega. Você confere o Pix e aprova em “Pedidos on-line”.',
+        )}
+        {!configuracao.vitrine_mostrar_preco && (
+          <Alerta tipo="aviso">Ligue “Mostrar preços” acima: sem preço, o cliente não consegue pagar.</Alerta>
+        )}
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Campo
+            rotulo="Chave Pix"
+            value={form.pix_chave}
+            disabled={!podeEditar}
+            onChange={(evento) => campo('pix_chave', evento.target.value)}
+            erro={erro?.doCampo('pix_chave')}
+            dica="Aleatória, e-mail, CPF/CNPJ ou telefone com +55."
+            className="sm:col-span-2"
+          />
+          <Campo
+            rotulo="Nome do recebedor"
+            value={form.pix_nome}
+            maxLength={25}
+            disabled={!podeEditar}
+            onChange={(evento) => campo('pix_nome', evento.target.value)}
+            dica="Como aparece no banco do cliente."
+          />
+          <Campo
+            rotulo="Cidade do recebedor"
+            value={form.pix_cidade}
+            maxLength={15}
+            disabled={!podeEditar}
+            onChange={(evento) => campo('pix_cidade', evento.target.value)}
+          />
+          <Campo
+            rotulo="Reserva enquanto o cliente paga (minutos)"
+            type="number"
+            min={5}
+            max={1440}
+            value={form.reserva_minutos}
+            disabled={!podeEditar}
+            onChange={(evento) => campo('reserva_minutos', Number(evento.target.value))}
+            erro={erro?.doCampo('reserva_minutos')}
+          />
+        </div>
+
+        <div className="divide-y divide-slate-100">
+          {caixa('aceita_entrega', 'Faço entrega', 'O cliente compartilha a localização do celular e um ponto de referência.')}
+          {caixa('aceita_retirada', 'Aceito retirada', 'O cliente busca o pedido informando o código.')}
+        </div>
+        {form.aceita_retirada && (
+          <Campo
+            rotulo="Instruções de retirada"
+            value={form.texto_retirada}
+            maxLength={200}
+            disabled={!podeEditar}
+            onChange={(evento) => campo('texto_retirada', evento.target.value)}
+            placeholder="Ex.: Rua X, 100 — das 14h às 22h"
+          />
+        )}
+
+        {erro && !erro.doCampo('pix_chave') && !erro.doCampo('reserva_minutos') && (
+          <Alerta>{erro.message}</Alerta>
+        )}
+        {salvo && <Alerta tipo="sucesso">Venda on-line salva.</Alerta>}
+
+        {podeEditar && (
+          <Botao carregando={salvar.isPending} onClick={() => salvar.mutate()}>
+            Salvar venda on-line
+          </Botao>
+        )}
+      </div>
+    </Cartao>
   )
 }
 

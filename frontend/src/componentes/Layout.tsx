@@ -3,18 +3,23 @@
 import clsx from 'clsx'
 import {
   BarChart3, BookOpen, Boxes, ChevronDown, LayoutDashboard, LogOut, Menu,
-  Package, Receipt, Settings, ShoppingCart, Truck, Users, Wallet, X,
+  Package, Receipt, Settings, ShoppingBag, ShoppingCart, Truck, Users, Wallet, X,
 } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 
+import { api } from '../lib/api'
 import { useAutenticacao } from '../lib/auth'
+import type { ResumoPedidos } from '../lib/pedidos'
 
 interface ItemMenu {
   para: string
   rotulo: string
   icone: typeof LayoutDashboard
   somenteGestao?: boolean
+  /** Só aparece para loja com venda on-line ligada. */
+  vendaOnline?: boolean
 }
 
 const MENU: { grupo: string; itens: ItemMenu[] }[] = [
@@ -25,6 +30,7 @@ const MENU: { grupo: string; itens: ItemMenu[] }[] = [
       { para: '/pdv', rotulo: 'PDV — Vender', icone: ShoppingCart },
       { para: '/caixa', rotulo: 'Caixa', icone: Wallet },
       { para: '/vendas', rotulo: 'Vendas', icone: Receipt },
+      { para: '/pedidos', rotulo: 'Pedidos on-line', icone: ShoppingBag, vendaOnline: true },
     ],
   },
   {
@@ -52,6 +58,17 @@ export function Layout() {
   const [menuAberto, setMenuAberto] = useState(false)
   const [contaAberta, setContaAberta] = useState(false)
   const local = useLocation()
+  const vendaOnline = Boolean(usuario?.loja.configuracao?.venda_online)
+
+  // Contador do menu: pedido esperando conferência de Pix não pode passar
+  // despercebido — o cliente está do outro lado olhando a tela.
+  const { data: resumo } = useQuery({
+    queryKey: ['pedidos-online', 'resumo'],
+    queryFn: () => api.get<ResumoPedidos>('/pedidos-online/resumo/'),
+    enabled: vendaOnline,
+    refetchInterval: 30000,
+  })
+  const aConferir = (resumo?.aguardando_pagamento ?? 0) + (resumo?.aguardando_conferencia ?? 0)
 
   // Navegar fecha o menu no celular; sem isso a lista fica por cima da tela.
   useEffect(() => {
@@ -62,7 +79,9 @@ export function Layout() {
   const navegacao = (
     <nav className="flex flex-col gap-5 p-3">
       {MENU.map(({ grupo, itens }) => {
-        const visiveis = itens.filter((item) => !item.somenteGestao || podeGerenciar)
+        const visiveis = itens.filter(
+          (item) => (!item.somenteGestao || podeGerenciar) && (!item.vendaOnline || vendaOnline),
+        )
         if (!visiveis.length) return null
         return (
           <div key={grupo}>
@@ -86,6 +105,11 @@ export function Layout() {
                   >
                     <Icone size={17} />
                     {rotulo}
+                    {para === '/pedidos' && aConferir > 0 && (
+                      <span className="ml-auto rounded-full bg-amber-500 px-1.5 text-xs font-semibold text-white">
+                        {aConferir}
+                      </span>
+                    )}
                   </NavLink>
                 </li>
               ))}
@@ -140,10 +164,13 @@ export function Layout() {
           <button
             onClick={() => setMenuAberto(true)}
             aria-label="Abrir menu"
-            className="-ml-1 inline-flex h-11 w-11 items-center justify-center rounded-lg
+            className="relative -ml-1 inline-flex h-11 w-11 items-center justify-center rounded-lg
                        text-slate-600 transition hover:bg-slate-100 active:bg-slate-200 lg:hidden"
           >
             <Menu size={22} />
+            {aConferir > 0 && (
+              <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full bg-amber-500 ring-2 ring-white" />
+            )}
           </button>
 
           <span className="truncate text-sm font-semibold text-slate-700 lg:hidden">

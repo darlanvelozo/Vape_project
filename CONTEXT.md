@@ -44,7 +44,8 @@ Cada loja se cadastra sozinha e enxerga apenas os próprios dados.
 | **Relatórios** | Mais vendidos, margem, curva ABC, giro de estoque, formas de pagamento, desempenho da equipe |
 | **Usuários** | Papéis dono, gerente e vendedor, com permissões distintas |
 | **Vitrine** | Página pública com foto, carrinho e pedido de reserva pelo WhatsApp; sem custo, margem ou quantidade exata |
-| **Guia de uso** | Página `/guia` com 14 seções explicando cada tela e as regras do sistema |
+| **Pedidos on-line** | Compra pela vitrine com Pix estático (QR e copia e cola) na chave da loja, reserva de estoque com prazo, conferência do Pix no painel, status de entrega com previsão, rota no Google Maps e consulta do cliente pelo telefone |
+| **Guia de uso** | Página `/guia` com 15 seções explicando cada tela e as regras do sistema |
 
 ## 4. Arquitetura
 
@@ -65,7 +66,7 @@ Cada loja se cadastra sozinha e enxerga apenas os próprios dados.
 | 2 | **Multi-loja:** SaaS multi-tenant, isolamento por linha (`loja_id`) | [ADR-0001](docs/adr/ADR-0001-multi-tenant-por-linha.md) |
 | 3 | **Interface:** SPA responsiva — desktop no balcão, funcional em tablet e celular | §4 |
 | 4 | **Fiscal:** sem módulo fiscal. No Brasil a RDC 855/2024 da ANVISA inviabiliza NFC-e para o ramo | [ADR-0003](docs/adr/ADR-0003-sem-modulo-fiscal.md) |
-| 5 | **Pagamentos:** sem gateway; formas de pagamento apenas registradas | [ADR-0003](docs/adr/ADR-0003-sem-modulo-fiscal.md) |
+| 5 | **Pagamentos:** sem gateway; formas de pagamento apenas registradas. Venda pela vitrine usa Pix estático com a chave da loja e conferência humana | [ADR-0003](docs/adr/ADR-0003-sem-modulo-fiscal.md), [ADR-0004](docs/adr/ADR-0004-venda-online-pix-estatico.md) |
 | 6 | **Dinheiro:** `Decimal` no banco, centavos inteiros na API | [ADR-0002](docs/adr/ADR-0002-dinheiro-decimal-e-centavos.md) |
 | 7 | **Domínio:** provisoriamente `vape.2-24-122-160.sslip.io` (sslip.io) | [docs/OPERACAO.md §5](docs/OPERACAO.md) |
 
@@ -89,3 +90,4 @@ Cada loja se cadastra sozinha e enxerga apenas os próprios dados.
 | 2026-09-15 | Dinheiro em `Decimal` no banco e centavos na API | ADR-0002 |
 | 2026-09-15 | Sem módulo fiscal e sem gateway de pagamento | ADR-0003 |
 | 2026-09-15 | v1.0.0 publicada em produção com HTTPS via sslip.io | CHANGELOG |
+| 2026-11-09 | Venda on-line pela vitrine com Pix estático e conferência humana | ADR-0004 |

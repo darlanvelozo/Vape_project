@@ -29,6 +29,14 @@ export interface ConfiguracaoLoja {
   vitrine_mostrar_preco: boolean
   vitrine_mensagem: string
   vitrine_whatsapp: string
+  venda_online: boolean
+  pix_chave: string
+  pix_nome: string
+  pix_cidade: string
+  reserva_minutos: number
+  aceita_entrega: boolean
+  aceita_retirada: boolean
+  texto_retirada: string
 }
 
 export interface Usuario {

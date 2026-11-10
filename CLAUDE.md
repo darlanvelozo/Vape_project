@@ -16,7 +16,8 @@
 fornecedores, financeiro e relatórios). Várias lojas, de donos diferentes,
 na mesma instalação.
 
-- **Versão atual:** **1.6.0, em produção** (22/10/2026). Lojas reais:
+- **Versão atual:** **1.7.0** (venda on-line com Pix, 09/11/2026 — ADR-0004;
+  publicar com `scripts/deploy.sh`). Em produção até o deploy: 1.6.0 (22/10/2026). Lojas reais:
   `luxury_vapes` (desde 15/09) e **Vaporize** (slug `vaporize`, antes
   `temospod`; criada em 07/10, primeira venda em 22/10, dono + 2 vendedores —
   no limite de 3 usuários do plano)
@@ -92,6 +93,10 @@ backup e roda a suíte antes de reiniciar).
   data pura como UTC e mostra o dia anterior no Brasil; usar `formatarData` e
   `dataISO` de `lib/formato.ts`.
 - Não commitar `dados/*.json`: são dados comerciais da loja.
+- **Reserva de pedido on-line não toca no saldo.** O disponível da vitrine é
+  `saldo − apps.pedidos.servicos.reservas_ativas()`; só a aprovação do Pix
+  vira venda e baixa estoque (ADR-0004). Comprovante de Pix é dado pessoal:
+  fica em `PRIVADO_ROOT`, nunca em `media/`.
 - **Imagem enviada por usuário passa por `core.imagens.processar`.** Nunca
   gravar o arquivo cru: ele pode não ser imagem, pesar 8 MB ou trazer nome
   com caminho.
