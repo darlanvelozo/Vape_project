@@ -12,7 +12,7 @@ from .pix import gerar_brcode
 # ------------------------------------------------------------------
 
 
-class ItemEntradaSerializer(serializers.Serializer):
+class ItemPedidoEntradaSerializer(serializers.Serializer):
     variacao = serializers.IntegerField()
     quantidade = serializers.IntegerField(min_value=1, max_value=20)
 
@@ -22,7 +22,7 @@ class CriarPedidoSerializer(serializers.Serializer):
     codinome = serializers.CharField(max_length=60)
     declarou_maioridade = serializers.BooleanField()
     tipo_entrega = serializers.ChoiceField(choices=TipoEntrega.choices)
-    itens = ItemEntradaSerializer(many=True)
+    itens = ItemPedidoEntradaSerializer(many=True)
     latitude = serializers.DecimalField(
         max_digits=9, decimal_places=6, required=False, allow_null=True,
         min_value=Decimal("-90"), max_value=Decimal("90"),

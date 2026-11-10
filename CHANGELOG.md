@@ -3,6 +3,22 @@
 Todas as mudanças relevantes deste projeto são registradas aqui.
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
+## [1.7.1] — 2026-11-09
+
+### Corrigido
+- **Envio do comprovante dava "Falha ao enviar"** em produção: a pasta
+  `backend/privado/` nascia do root (o deploy roda como root) e o serviço, que
+  roda como `vape`, não conseguia gravar. `deploy.sh` agora cria `media/` e
+  `privado/` com o dono certo, e falha ao gravar a imagem não perde mais o
+  aviso de pagamento — o pedido segue para conferência e o erro vai para o log.
+- Resposta de erro que não é JSON (500 ou 413 vindos do nginx) mostrava só
+  "falhou"; agora a tela diz o motivo.
+- Nome duplicado de serializer que deixava o schema da API ambíguo.
+
+### Alterado
+- A foto do comprovante é reduzida no celular (até 1600 px) antes do envio.
+- Se o envio falhar, o cliente pode avisar que pagou sem o print.
+
 ## [1.7.0] — 2026-11-09
 
 ### Adicionado

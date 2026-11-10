@@ -23,6 +23,7 @@ import { Link, useParams } from 'react-router-dom'
 import { Carregando } from '../componentes/ui'
 import { ErroApi, api, enviarArquivo } from '../lib/api'
 import { formatarDataHora, formatarMoeda, formatarTelefone, numeroWhatsApp } from '../lib/formato'
+import { reduzirImagem } from '../lib/imagem'
 import {
   PEDIDO_PAGO, etapasDoPedido, indiceEtapa, lembrarPedido, linkDoPedido,
 } from '../lib/pedidos'
@@ -271,12 +272,21 @@ function EnviarComprovante({
   const [arquivo, setArquivo] = useState<File | null>(null)
 
   const enviar = useMutation({
-    mutationFn: (comArquivo: boolean) =>
-      enviarArquivo<PedidoPublico>(
+    mutationFn: async (comArquivo: boolean) => {
+      const campos: Record<string, Blob> = {}
+      if (comArquivo && arquivo) {
+        // O nome segue junto para o servidor; o conteúdo vai reduzido.
+        const reduzida = await reduzirImagem(arquivo)
+        campos.comprovante = new File([reduzida], 'comprovante.jpg', {
+          type: reduzida.type || 'image/jpeg',
+        })
+      }
+      return enviarArquivo<PedidoPublico>(
         `/vitrine/${slug}/pedidos/${pedido.token}/pagamento/`,
-        comArquivo && arquivo ? { comprovante: arquivo } : {},
+        campos,
         'POST',
-      ),
+      )
+    },
     onSuccess: aoAtualizar,
   })
 
@@ -308,8 +318,19 @@ function EnviarComprovante({
       </button>
       {enviar.error && (
         <p className="text-sm text-rose-300">
-          {enviar.error instanceof ErroApi ? enviar.error.message : 'Falha ao enviar. Tente de novo.'}
+          {enviar.error instanceof ErroApi
+            ? enviar.error.message
+            : 'Sem conexão com a loja. Confira a internet e tente de novo.'}
         </p>
+      )}
+      {enviar.error && arquivo && (
+        <button
+          onClick={() => enviar.mutate(false)}
+          disabled={enviar.isPending}
+          className="min-h-[44px] w-full rounded-xl border border-white/15 text-sm font-medium text-slate-200"
+        >
+          Avisar que já paguei sem o print
+        </button>
       )}
     </div>
   )

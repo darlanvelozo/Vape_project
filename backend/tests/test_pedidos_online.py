@@ -237,6 +237,24 @@ class TestClienteAcompanha:
         assert pedido.comprovante
         assert "/media/" not in pedido.comprovante.path
 
+    def test_falha_ao_gravar_comprovante_nao_perde_o_aviso(
+        self, publico, loja, venda_online, variacao, monkeypatch
+    ):
+        """Pasta sem permissão (deploy como root) não pode virar erro 500."""
+        from django.db.models.fields.files import FieldFile
+
+        def falhar(*args, **kwargs):
+            raise PermissionError("sem permissão")
+
+        monkeypatch.setattr(FieldFile, "save", falhar)
+        token = _criar(publico, loja, variacao).json()["token"]
+        resposta = publico.post(
+            f"/api/vitrine/{loja.slug}/pedidos/{token}/pagamento/",
+            {"comprovante": _imagem()}, format="multipart",
+        )
+        assert resposta.status_code == 200
+        assert resposta.json()["status"] == "aguardando_conferencia"
+
     def test_comprovante_que_nao_e_imagem_e_recusado(self, publico, loja, venda_online, variacao):
         token = _criar(publico, loja, variacao).json()["token"]
         falso = SimpleUploadedFile("x.png", b"nao sou imagem", content_type="image/png")

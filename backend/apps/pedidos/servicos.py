@@ -15,6 +15,7 @@ criação do pedido trava as linhas de variação para que dois clientes não
 levem a mesma última unidade.
 """
 
+import logging
 from collections import defaultdict
 from datetime import timedelta
 
@@ -34,6 +35,8 @@ from .models import (
     TipoEntrega,
     gerar_codigo,
 )
+
+logger = logging.getLogger(__name__)
 
 MAXIMO_POR_ITEM = 20
 MAXIMO_DE_ITENS = 30
@@ -267,8 +270,16 @@ def informar_pagamento(*, pedido: PedidoOnline, comprovante=None) -> PedidoOnlin
         )
 
     if comprovante is not None:
-        pedido.comprovante.save("comprovante.jpg", processar(comprovante), save=False)
-        pedido.comprovante_enviado_em = agora
+        imagem = processar(comprovante)  # arquivo inválido → 400 com mensagem
+        try:
+            pedido.comprovante.save("comprovante.jpg", imagem, save=False)
+            pedido.comprovante_enviado_em = agora
+        except OSError:
+            # Disco cheio ou pasta sem permissão não pode engolir o aviso de
+            # pagamento: o cliente pagou. O pedido segue para conferência sem
+            # a imagem — a loja confere no extrato do banco de qualquer jeito.
+            logger.exception("Falha ao gravar comprovante do pedido %s", pedido.codigo)
+            pedido.comprovante = ""
     pedido.status = StatusPedido.AGUARDANDO_CONFERENCIA
     pedido.save()
     return pedido

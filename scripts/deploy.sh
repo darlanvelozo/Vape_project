@@ -28,6 +28,11 @@ export DJANGO_SETTINGS_MODULE=config.settings.prod
 .venv/bin/python manage.py collectstatic --noinput
 .venv/bin/python manage.py check --deploy
 
+# Pastas onde o serviço (usuário vape) grava arquivo enviado. O deploy roda
+# como root: sem isto, pasta nova nasce de root e o upload dá erro 500.
+install -d -o vape -g vape -m 755 "$RAIZ/backend/media"
+install -d -o vape -g vape -m 750 "$RAIZ/backend/privado"
+
 echo "==> 5/6 Frontend"
 cd "$RAIZ/frontend"
 npm ci --silent

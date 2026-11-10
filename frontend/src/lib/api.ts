@@ -73,6 +73,23 @@ function camposDoCorpo(corpo: unknown): Record<string, string[]> {
   return campos
 }
 
+/**
+ * Corpo da resposta como JSON — ou `null` quando não é JSON.
+ *
+ * Erro 413 (arquivo grande) e 502/500 vêm do nginx ou do Django em HTML;
+ * sem esta proteção o `JSON.parse` estoura e a tela só sabe dizer "falhou".
+ */
+async function lerCorpo(resposta: Response): Promise<unknown> {
+  const texto = await resposta.text()
+  if (!texto) return null
+  try {
+    return JSON.parse(texto)
+  } catch {
+    if (resposta.status === 413) return { detalhe: 'Arquivo grande demais. Envie uma imagem menor.' }
+    return null
+  }
+}
+
 let renovacaoEmCurso: Promise<boolean> | null = null
 
 /**
@@ -142,8 +159,7 @@ export async function requisicao<T = unknown>(caminho: string, opcoes: Opcoes = 
 
   if (resposta.status === 204) return undefined as T
 
-  const texto = await resposta.text()
-  const dados = texto ? JSON.parse(texto) : null
+  const dados = await lerCorpo(resposta)
 
   if (!resposta.ok) {
     throw new ErroApi(resposta.status, mensagemDoCorpo(dados, resposta.status), camposDoCorpo(dados))
@@ -178,8 +194,7 @@ export async function enviarArquivo<T>(
     if (await renovarToken()) resposta = await executar()
   }
 
-  const texto = await resposta.text()
-  const dados = texto ? JSON.parse(texto) : null
+  const dados = await lerCorpo(resposta)
   if (!resposta.ok) {
     throw new ErroApi(resposta.status, mensagemDoCorpo(dados, resposta.status), camposDoCorpo(dados))
   }
