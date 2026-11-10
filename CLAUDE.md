@@ -26,9 +26,10 @@ na mesma instalação.
   e nada nele foi contratado — ver [docs/ROADMAP.md](docs/ROADMAP.md).
 - **Repositório:** https://github.com/darlanvelozo/Vape_project (público —
   **nunca commitar secrets**; `.env` e `deploy/env/` estão no `.gitignore`).
-  **Em 22/10/2026 o repositório no GitHub estava vazio** (nenhuma branch): o
-  código só existe nesta VPS, e os backups ficam no mesmo disco. Enviar o
-  código e copiar o backup para fora é a pendência mais séria.
+  O código foi enviado ao GitHub em 09/11/2026. A VPS faz push por uma
+  deploy key só deste repositório (`~/.ssh/github_vape_project`, ligada via
+  `core.sshCommand`). **Os backups ainda ficam no mesmo disco da VPS:**
+  copiá-los para fora é a pendência mais séria.
 - **Operação:** [docs/OPERACAO.md](docs/OPERACAO.md) — deploy, backup,
   restauração, logs e migração para domínio próprio.
 - **Guia do lojista:** a página `/guia` documenta o produto para quem opera.
